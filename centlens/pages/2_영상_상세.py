@@ -41,7 +41,7 @@ if not slug:
         f"""
         <div class="cl-fallback" style="margin-top:24px;">
           영상이 선택되지 않았습니다.<br>
-          <a href="/3_분석한_영상_모음" target="_self" style="color:#0070f3;">← 분석한 영상 모음으로 돌아가기</a>
+          <a href="/분석한_영상_모음" target="_self" style="color:#0070f3;">← 분석한 영상 모음으로 돌아가기</a>
         </div>
         """,
         unsafe_allow_html=True,
@@ -55,7 +55,7 @@ if rec is None:
         f"""
         <div class="cl-fallback" style="margin-top:24px;">
           slug “{slug}” 에 해당하는 영상을 찾을 수 없습니다.<br>
-          <a href="/3_분석한_영상_모음" target="_self" style="color:#0070f3;">← 분석한 영상 모음으로 돌아가기</a>
+          <a href="/분석한_영상_모음" target="_self" style="color:#0070f3;">← 분석한 영상 모음으로 돌아가기</a>
         </div>
         """,
         unsafe_allow_html=True,
@@ -97,7 +97,7 @@ for ax in AXES:
 # ─── 뒤로가기 ─────────────────────────────────────────────────────────────────
 st.markdown(
     '<div style="margin-bottom:8px;">'
-    '<a href="/3_분석한_영상_모음" target="_self" style="font-size:12px; color:#a1a1aa; font-weight:500;">'
+    '<a href="/분석한_영상_모음" target="_self" style="font-size:12px; color:#a1a1aa; font-weight:500;">'
     "← 분석한 영상 모음</a>"
     "</div>",
     unsafe_allow_html=True,
@@ -415,4 +415,4 @@ save_cols = st.columns([5, 1])
 with save_cols[1]:
     if st.button("저장", key=f"save_{rec.slug}", use_container_width=True):
         # 데모 단계에서는 session_state에만 보존. SupabaseRepository 단계에서 영구 저장 예정.
-        st.toast("코멘트가 저장됐어요 (현재는 세션 임시 저장)", icon="✓")
+        st.toast("코멘트가 저장됐어요 (현재는 세션 임시 저장)", icon="✅")

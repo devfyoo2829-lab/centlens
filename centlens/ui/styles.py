@@ -9,6 +9,7 @@
 - 툴팁(``cl-tip``)은 시안 README의 30개 명세를 그대로 따름. ``tip_html()``로 inline 삽입.
 """
 
+import re
 from typing import Optional
 
 import streamlit as st
@@ -171,30 +172,96 @@ a:hover { text-decoration: underline; }
   font-family: 'Pretendard', 'Inter', sans-serif !important;
 }
 .stTextInput input::placeholder, .stTextArea textarea::placeholder { color: #71717a !important; }
-.stFileUploader { border: 1px dashed #404040 !important; border-radius: 8px !important; background: #0a0a0a !important; }
-.stFileUploader > section { background: transparent !important; padding: 16px !important; }
-.stFileUploader label { color: #a1a1aa !important; }
 
-/* segmented_control */
-[data-testid="stSegmentedControl"] button {
-  background: transparent !important; color: #a1a1aa !important;
-  border: 0.5px solid #262626 !important; font-size: 12px !important;
+/* ── file_uploader ───────────────────────────────────────────────────────── */
+[data-testid="stFileUploader"] {
+  border: 1px dashed #404040 !important;
+  border-radius: 8px !important;
+  background: #0a0a0a !important;
 }
-[data-testid="stSegmentedControl"] button[aria-pressed="true"] {
-  background: #ffffff !important; color: #000000 !important; border-color: #fff !important;
+[data-testid="stFileUploader"] section,
+[data-testid="stFileUploaderDropzone"] {
+  background: transparent !important;
+  padding: 16px !important;
+  border: none !important;
+}
+[data-testid="stFileUploader"] label,
+[data-testid="stFileUploaderDropzone"] small,
+[data-testid="stFileUploaderDropzone"] span {
+  color: #a1a1aa !important;
+}
+/* Browse 버튼 — Streamlit 1.30+ 의 stBaseButton-secondary 또는 dropzone 내부 button */
+[data-testid="stFileUploaderDropzone"] button,
+[data-testid="stFileUploader"] button,
+[data-testid="stBaseButton-secondary"] {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 0.5px solid #262626 !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  font-family: 'Pretendard', 'Inter', sans-serif !important;
+}
+[data-testid="stFileUploaderDropzone"] button:hover,
+[data-testid="stFileUploader"] button:hover,
+[data-testid="stBaseButton-secondary"]:hover {
+  background: #262626 !important;
+  color: #ffffff !important;
+  border-color: #404040 !important;
 }
 
-/* button */
-.stButton > button {
-  background: #ffffff; color: #000; border: none; padding: 10px 16px;
-  border-radius: 8px; font-size: 13px; font-weight: 500;
-  font-family: 'Pretendard', 'Inter', sans-serif;
+/* ── segmented_control (실제 testid 는 stButtonGroup) ────────────────────── */
+[data-testid="stButtonGroup"],
+[data-testid="stSegmentedControl"] {
+  background: transparent !important;
 }
-.stButton > button:hover { background: #e4e4e7; color: #000; }
-.stButton > button[kind="secondary"] {
-  background: #1a1a1a; color: #fff; border: 0.5px solid #262626;
+[data-testid="stButtonGroup"] button,
+[data-testid="stSegmentedControl"] button,
+[data-baseweb="button-group"] button {
+  background: transparent !important;
+  color: #a1a1aa !important;
+  border: 0.5px solid #262626 !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  font-family: 'Pretendard', 'Inter', sans-serif !important;
+  box-shadow: none !important;
 }
-.stButton > button[kind="secondary"]:hover { background: #262626; border-color: #404040; }
+[data-testid="stButtonGroup"] button:hover,
+[data-testid="stSegmentedControl"] button:hover,
+[data-baseweb="button-group"] button:hover {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border-color: #404040 !important;
+}
+/* 선택된 옵션 — aria-pressed="true" 또는 kind*="active" */
+[data-testid="stButtonGroup"] button[aria-pressed="true"],
+[data-testid="stSegmentedControl"] button[aria-pressed="true"],
+[data-baseweb="button-group"] button[aria-pressed="true"],
+[data-testid="stButtonGroup"] button[kind*="ction"],
+[data-testid="stButtonGroup"] button[data-selected="true"] {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 0.5px solid #ffffff !important;
+}
+
+/* ── 일반 button (st.button) ────────────────────────────────────────────── */
+.stButton > button,
+[data-testid="stBaseButton-primary"] {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: none !important;
+  padding: 10px 16px !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  font-family: 'Pretendard', 'Inter', sans-serif !important;
+}
+.stButton > button:hover,
+[data-testid="stBaseButton-primary"]:hover {
+  background: #e4e4e7 !important;
+  color: #000000 !important;
+}
 
 /* ── 6축 게이지 막대 ─────────────────────────────────────────────────────── */
 .cl-axis-row { margin-bottom: 14px; }
@@ -394,7 +461,7 @@ def configure_page(page_title: str = "CentLens") -> None:
     """모든 페이지에서 가장 먼저 호출되는 page config + 베이스 스타일 주입."""
     st.set_page_config(
         page_title=page_title,
-        page_icon="◎",
+        page_icon="🎯",
         layout="wide",
         initial_sidebar_state="collapsed",
         menu_items={"About": None, "Get help": None, "Report a bug": None},
@@ -407,8 +474,11 @@ def render_header(active: str) -> None:
     tabs_html_parts: list[str] = []
     for key, label in PAGE_LABELS.items():
         cls = "cl-tab cl-tab-active" if key == active else "cl-tab"
-        # 페이지 라우팅은 anchor href — multipage app에서 한국어 파일명 그대로 동작.
-        href = "/" + PAGE_PATHS[key].split("/")[-1].replace(".py", "")
+        # Streamlit은 페이지 파일명의 numeric prefix(`1_`,`2_`,`3_`)를 정렬용으로만 쓰고
+        # URL path에서는 제거한다. 따라서 stem에서 leading "숫자_" 까지 잘라낸 뒤 사용.
+        stem = PAGE_PATHS[key].split("/")[-1].replace(".py", "")
+        page_name = re.sub(r"^[0-9]+[_\- ]*", "", stem)
+        href = "/" + page_name
         tabs_html_parts.append(
             f'<a class="{cls}" href="{href}" target="_self">{label}</a>'
         )

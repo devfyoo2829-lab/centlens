@@ -136,7 +136,7 @@ if start_clicked:
     else:
         # mock — 다음 단계에서 LangGraph astream 으로 교체
         st.session_state["mock_progress"] = "running"
-        st.toast("분석을 시작합니다 (현재는 mock 진행)", icon="✓")
+        st.toast("분석을 시작합니다 (현재는 mock 진행)", icon="🎬")
 
 
 # ─── 분석 진행 상황 (mock) ───────────────────────────────────────────────────
@@ -288,5 +288,5 @@ st.markdown(
 if progress == "running":
     st.info(
         "이번 단계는 mock 진행입니다. 실제 LangGraph 분석은 다음 단계에서 연결됩니다. "
-        "현재 분석된 5편 영상은 [분석한 영상 모음](/3_분석한_영상_모음)에서 확인할 수 있습니다."
+        "현재 분석된 5편 영상은 [분석한 영상 모음](/분석한_영상_모음)에서 확인할 수 있습니다."
     )

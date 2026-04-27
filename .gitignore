@@ -78,3 +78,4 @@ logs/
 # 검증/디버그용 임시 스크립트
 check_*.py
 debug_*.py
+demo_cache/

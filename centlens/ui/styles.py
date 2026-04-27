@@ -129,13 +129,37 @@ a:hover { text-decoration: underline; }
 .cl-logo-name { font-weight: 500; font-size: 15px; color: #fff; }
 .cl-logo-tagline { font-size: 13px; color: #71717a; margin-left: 8px; }
 .cl-tabs { display: flex; gap: 4px; }
-.cl-tab {
-  background: transparent; color: #a1a1aa; border: 0.5px solid transparent;
-  padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;
-  text-decoration: none; display: inline-block;
+/* 글로벌 a 태그 색 / streamlit 자체 a selector를 모두 덮어쓰기 위해 모든 link state + !important */
+.cl-tabs a.cl-tab,
+.cl-tabs a.cl-tab:link,
+.cl-tabs a.cl-tab:visited,
+.cl-tabs a.cl-tab:active {
+  background: transparent !important;
+  color: #a1a1aa !important;
+  border: 0.5px solid transparent !important;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  display: inline-block !important;
+  font-family: 'Pretendard', 'Inter', sans-serif !important;
 }
-.cl-tab:hover { color: #fff; text-decoration: none; }
-.cl-tab-active { background: #0a0a0a; color: #fff; border: 0.5px solid #262626; }
+.cl-tabs a.cl-tab:hover {
+  color: #ffffff !important;
+  text-decoration: none !important;
+  background: transparent !important;
+}
+.cl-tabs a.cl-tab-active,
+.cl-tabs a.cl-tab-active:link,
+.cl-tabs a.cl-tab-active:visited,
+.cl-tabs a.cl-tab-active:hover,
+.cl-tabs a.cl-tab-active:active {
+  background: #0a0a0a !important;
+  color: #ffffff !important;
+  border: 0.5px solid #262626 !important;
+}
 
 /* ── 카드/뱃지/입력 컴포넌트 ─────────────────────────────────────────────── */
 .cl-card {
@@ -245,19 +269,42 @@ a:hover { text-decoration: underline; }
   border: 0.5px solid #ffffff !important;
 }
 
-/* ── 일반 button (st.button) ────────────────────────────────────────────── */
+/* ── st.button: 기본/secondary = 다크, primary = 흰색 ────────────────────── */
+/* 기본 (kind 미지정) 및 secondary는 다크 톤. 칩, '자세히 보기' 등이 여기 해당 */
 .stButton > button,
+.stButton > button[kind="secondary"],
+[data-testid="stBaseButton-secondary"] {
+  background: #1a1a1a !important;
+  color: #a1a1aa !important;
+  border: 0.5px solid #262626 !important;
+  border-radius: 6px !important;
+  padding: 8px 14px !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  font-family: 'Pretendard', 'Inter', sans-serif !important;
+  box-shadow: none !important;
+}
+.stButton > button:hover,
+.stButton > button[kind="secondary"]:hover,
+[data-testid="stBaseButton-secondary"]:hover {
+  background: #262626 !important;
+  color: #ffffff !important;
+  border-color: #404040 !important;
+}
+
+/* primary는 type="primary"로 명시한 버튼 (분석 시작/찾기/저장 등 강조 액션) */
+.stButton > button[kind="primary"],
 [data-testid="stBaseButton-primary"] {
   background: #ffffff !important;
   color: #000000 !important;
   border: none !important;
-  padding: 10px 16px !important;
   border-radius: 8px !important;
+  padding: 10px 16px !important;
   font-size: 13px !important;
   font-weight: 500 !important;
   font-family: 'Pretendard', 'Inter', sans-serif !important;
 }
-.stButton > button:hover,
+.stButton > button[kind="primary"]:hover,
 [data-testid="stBaseButton-primary"]:hover {
   background: #e4e4e7 !important;
   color: #000000 !important;

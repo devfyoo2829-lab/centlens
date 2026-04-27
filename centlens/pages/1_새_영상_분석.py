@@ -124,6 +124,7 @@ with col_meta:
 st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
 start_clicked = st.button(
     "분석 시작",
+    type="primary",
     use_container_width=True,
     key="start_analysis",
 )

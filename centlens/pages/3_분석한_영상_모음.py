@@ -205,7 +205,7 @@ with search_cols[0]:
         key="search_query_textbox",
     )
 with search_cols[1]:
-    search_clicked = st.button("찾기", use_container_width=True, key="search_btn")
+    search_clicked = st.button("찾기", type="primary", use_container_width=True, key="search_btn")
 
 # 칩 row
 chip_cols = st.columns([1, 2, 2, 2, 5])
@@ -233,6 +233,7 @@ with filter_cols[0]:
         options=list(CATEGORY_KO.keys()),
         format_func=lambda c: CATEGORY_KO.get(c, c),
         default=[],
+        placeholder="전체",
         key="filter_category",
     )
 with filter_cols[1]:
@@ -241,6 +242,7 @@ with filter_cols[1]:
         options=list(GRADE_KO.keys()),
         format_func=lambda g: GRADE_KO.get(g, g),
         default=[],
+        placeholder="전체",
         key="filter_grade",
     )
 with filter_cols[2]:
@@ -248,6 +250,7 @@ with filter_cols[2]:
         "장르",
         options=genres_present,
         default=[],
+        placeholder="전체",
         key="filter_genre",
     )
 

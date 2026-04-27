@@ -413,6 +413,6 @@ st.text_area(
 )
 save_cols = st.columns([5, 1])
 with save_cols[1]:
-    if st.button("저장", key=f"save_{rec.slug}", use_container_width=True):
+    if st.button("저장", type="primary", key=f"save_{rec.slug}", use_container_width=True):
         # 데모 단계에서는 session_state에만 보존. SupabaseRepository 단계에서 영구 저장 예정.
         st.toast("코멘트가 저장됐어요 (현재는 세션 임시 저장)", icon="✅")

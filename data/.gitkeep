@@ -1,0 +1,2 @@
+# 이 디렉토리는 prepare_data.py 실행 시 영상/프레임/STT가 저장됩니다.
+# .gitignore로 실제 파일은 커밋되지 않습니다.

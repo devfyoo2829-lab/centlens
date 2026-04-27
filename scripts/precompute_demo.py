@@ -96,8 +96,21 @@ async def _run_one(slug: str, metadata: dict, compiled: Any) -> dict:
     final_state: dict[str, Any] = dict(initial_state)
     fatal_error: Optional[str] = None
 
+    # LangSmith 트레이스 식별용 — 영상별 run_name + tags
+    config: dict[str, Any] = {
+        "run_name": f"centlens:{slug}",
+        "tags": ["centlens", "precompute_demo", slug, metadata.get("category") or ""],
+        "metadata": {
+            "slug": slug,
+            "game_name": metadata["game_name"],
+            "genre": metadata["genre"],
+            "category": metadata["category"],
+            "publisher": metadata.get("publisher"),
+        },
+    }
+
     try:
-        async for chunk in compiled.astream(initial_state, stream_mode="updates"):
+        async for chunk in compiled.astream(initial_state, stream_mode="updates", config=config):
             now = time.perf_counter() - started
             if not isinstance(chunk, dict):
                 continue

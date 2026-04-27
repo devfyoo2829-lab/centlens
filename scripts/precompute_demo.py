@@ -71,25 +71,11 @@ def _check_prerequisites(metadata_list: list[dict]) -> tuple[bool, list[str]]:
     return (len(issues) == 0), issues
 
 
-def _derive_b_score(
-    a: Optional[dict], final: Optional[dict]
-) -> Optional[dict]:
-    """A·final로부터 B를 역산. final = (a + b) / 2 → b = 2*final - a.
-
-    a 또는 final이 없으면 None. rationale은 재구성 표기.
-    """
-    if a is None or final is None:
-        return None
-    try:
-        b_score = round(2 * float(final["score"]) - float(a["score"]), 2)
-        b_conf = round(2 * float(final["confidence"]) - float(a["confidence"]), 2)
-    except (KeyError, TypeError, ValueError):
-        return None
-    return {
-        "score": b_score,
-        "rationale": "(B채점 — A점수와 final로부터 역산)",
-        "confidence": b_conf,
-    }
+_B_MISSING_PLACEHOLDER: dict = {
+    "score": None,
+    "rationale": "(B 채점 미완료 — Cross-Check 실패 또는 해당 축 누락)",
+    "confidence": None,
+}
 
 
 async def _run_one(slug: str, metadata: dict, compiled: Any) -> dict:
@@ -161,15 +147,14 @@ async def _run_one(slug: str, metadata: dict, compiled: Any) -> dict:
     if durations["preprocessor"] is not None:
         durations["preprocessor"] = round(durations["preprocessor"], 3)
 
-    # ── 6축 점수: A / B(역산) / final ───────────────────────────────────
+    # ── 6축 점수: A / B(원본 rationale 보존) / final ────────────────────
     axis_scores: dict[str, dict] = {}
     for ax in AXES:
-        a = final_state.get(f"{ax}_a")
-        f = final_state.get(f"{ax}_final")
+        b = final_state.get(f"{ax}_b")
         axis_scores[ax] = {
-            "a": a,
-            "b": _derive_b_score(a, f),
-            "final": f,
+            "a": final_state.get(f"{ax}_a"),
+            "b": b if b is not None else dict(_B_MISSING_PLACEHOLDER),
+            "final": final_state.get(f"{ax}_final"),
         }
 
     embedding_vec = final_state.get("embedding")

@@ -51,7 +51,16 @@ class CentLensState(TypedDict, total=False):
     color_a: Optional[AxisScore]
     sound_a: Optional[AxisScore]
 
-    # ── ⑧ Cross-Check 출력 (B채점 후 A·B 평균) ──────────────────────────
+    # ── ⑧ Cross-Check 출력 (B채점 — 역순 일괄 채점 원본) ────────────────
+    # B의 rationale은 시연용 자산이며 "같은 영상을 두 관점으로 본" 증거다.
+    movement_b: Optional[AxisScore]
+    growth_b: Optional[AxisScore]
+    expansion_b: Optional[AxisScore]
+    camera_b: Optional[AxisScore]
+    color_b: Optional[AxisScore]
+    sound_b: Optional[AxisScore]
+
+    # ── ⑧ Cross-Check 출력 (A·B 평균 + A의 rationale 사용) ──────────────
     movement_final: Optional[AxisScore]
     growth_final: Optional[AxisScore]
     expansion_final: Optional[AxisScore]

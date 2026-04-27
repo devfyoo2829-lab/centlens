@@ -116,8 +116,11 @@ async def cross_check_node(state: CentLensState) -> dict:
                 if isinstance(inner, dict):
                     b_scores[ax] = _coerce_axis_score(inner)
 
+    # B 원본 점수도 state에 보존한다 — Cross-Check의 진짜 가치(같은 영상을
+    # 두 관점으로 보는 것)는 B rationale에 담겨 있어 시연 자산으로 활용된다.
     result: dict = {}
     for ax in AXES:
+        result[f"{ax}_b"] = b_scores[ax]
         result[f"{ax}_final"] = _average_scores(a_scores[ax], b_scores[ax])
 
     elapsed = time.perf_counter() - started

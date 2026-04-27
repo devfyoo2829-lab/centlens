@@ -69,3 +69,12 @@ htmlcov/
 # OS
 Thumbs.db
 desktop.ini
+
+# 로그 파일
+*.log
+log.txt
+logs/
+
+# 검증/디버그용 임시 스크립트
+check_*.py
+debug_*.py

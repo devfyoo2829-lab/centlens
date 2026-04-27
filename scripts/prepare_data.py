@@ -26,10 +26,19 @@ Annie 글이 분석한 5개 게임의 슈퍼센트 공식 광고 영상을 다�
 import json
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
 from openai import OpenAI
+
+# 프로젝트 루트를 sys.path에 추가 — `python scripts/prepare_data.py` 실행 시
+# centlens 패키지를 찾을 수 있도록.
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+
+from centlens.core.text_utils import is_likely_hallucination  # noqa: E402
 
 load_dotenv()
 
@@ -221,7 +230,13 @@ def transcribe_audio(video_path: Path, output_path: Path, client: OpenAI) -> boo
                 file=f,
                 response_format="text",
             )
-        output_path.write_text(transcript, encoding="utf-8")
+        text = (transcript or "").strip()
+        if is_likely_hallucination(text):
+            preview = text[:50].replace("\n", " ")
+            print(f"  [warn] 환각 의심됨, 빈 스크립트로 저장: '{preview}...'")
+            output_path.write_text("", encoding="utf-8")
+        else:
+            output_path.write_text(text, encoding="utf-8")
         print(f"  [done] STT 완료: {output_path}")
         return True
     except Exception as e:

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CentLens — 페이지 1: 새 영상 분석</title>
+<style>
+  body {
+    margin: 0;
+    background: #18181b;
+    padding: 40px 20px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .cl-tip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: help;
+    margin-left: 4px;
+  }
+  .cl-tip-icon {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 0.5px solid #404040;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #71717a;
+    font-size: 9px;
+    font-weight: 500;
+    font-style: italic;
+    font-family: Georgia, serif;
+  }
+  .cl-tip:hover .cl-tip-icon {
+    color: #fff;
+    border-color: #71717a;
+  }
+  .cl-tip-content {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0a0a0a;
+    border: 0.5px solid #404040;
+    border-radius: 8px;
+    padding: 10px 12px;
+    width: 240px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #d4d4d8;
+    z-index: 100;
+    text-align: left;
+    font-weight: 400;
+    transition: opacity 0.15s, visibility 0.15s;
+    pointer-events: none;
+    font-style: normal;
+  }
+  .cl-tip:hover .cl-tip-content {
+    visibility: visible;
+    opacity: 1;
+  }
+  .cl-tip-content::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: #404040;
+  }
+  .cl-tip-content strong {
+    color: #fff;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<div style="background: #000; color: #fff; padding: 24px; border-radius: 12px; min-height: 600px;">
+
+<div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 20px; border-bottom: 0.5px solid #262626; margin-bottom: 32px;">
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <div style="width: 28px; height: 28px; background: #fff; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+      <span style="color: #000; font-weight: 500; font-size: 14px;">CL</span>
+    </div>
+    <span style="font-weight: 500; font-size: 15px;">CentLens</span>
+    <span style="font-size: 13px; color: #71717a; margin-left: 8px;">슈퍼센트 6축 프레임으로 광고 영상을 들여다보는 도구</span>
+  </div>
+  <div style="display: flex; gap: 4px;">
+    <button style="background: #0a0a0a; color: #fff; border: 0.5px solid #262626; padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;">새 영상 분석</button>
+    <button style="background: transparent; color: #a1a1aa; border: 0.5px solid transparent; padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;">영상 상세</button>
+    <button style="background: transparent; color: #a1a1aa; border: 0.5px solid transparent; padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;">분석한 영상 모음</button>
+  </div>
+</div>
+
+<div style="margin-bottom: 32px;">
+  <h1 style="font-size: 22px; font-weight: 500; margin: 0 0 8px;">새 영상 분석</h1>
+  <p style="font-size: 14px; color: #a1a1aa; margin: 0;">광고 영상 1편을 슈퍼센트 6축 프레임으로 자동 분해합니다. 약 30~40초 소요됩니다.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+
+  <div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 20px;">
+    <div style="font-size: 13px; color: #a1a1aa; margin-bottom: 12px; font-weight: 500;">영상 입력</div>
+    <div style="border: 1px dashed #404040; border-radius: 8px; padding: 32px 16px; text-align: center; margin-bottom: 12px;">
+      <div style="width: 32px; height: 32px; margin: 0 auto 8px; border: 1px solid #404040; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #a1a1aa;">↑</div>
+      <p style="font-size: 13px; color: #a1a1aa; margin: 0 0 4px;">파일을 드래그하거나 클릭</p>
+      <p style="font-size: 12px; color: #71717a; margin: 0;">MP4 / 최대 100MB</p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #71717a; margin: 12px 0;">
+      <div style="flex: 1; height: 0.5px; background: #262626;"></div>
+      <span>또는</span>
+      <div style="flex: 1; height: 0.5px; background: #262626;"></div>
+    </div>
+    <input type="text" placeholder="YouTube URL 붙여넣기" style="width: 100%; background: #000; border: 0.5px solid #262626; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+  </div>
+
+  <div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 20px;">
+    <div style="font-size: 13px; color: #a1a1aa; margin-bottom: 12px; font-weight: 500;">분류 및 메타데이터</div>
+
+    <div style="margin-bottom: 16px;">
+      <div style="display: flex; align-items: center; margin-bottom: 6px;">
+        <label style="font-size: 12px; color: #71717a;">분류</label>
+        <span class="cl-tip">
+          <span class="cl-tip-icon">i</span>
+          <span class="cl-tip-content"><strong>분류는 왜 중요한가요?</strong><br>나중에 자사·경쟁사·시장 트렌드를 비교 분석할 때 기준이 돼요. 의미 검색에서도 분류로 필터링할 수 있어요.</span>
+        </span>
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <button style="background: #fff; color: #000; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; flex: 1;">자사 신규</button>
+        <button style="background: transparent; color: #a1a1aa; border: 0.5px solid #262626; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; flex: 1;">경쟁사</button>
+        <button style="background: transparent; color: #a1a1aa; border: 0.5px solid #262626; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; flex: 1;">시장 트렌드</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 16px;">
+      <label style="font-size: 12px; color: #71717a; display: block; margin-bottom: 6px;">게임명</label>
+      <input type="text" placeholder="Pizza Ready" style="width: 100%; background: #000; border: 0.5px solid #262626; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+    </div>
+
+    <div>
+      <div style="display: flex; align-items: center; margin-bottom: 6px;">
+        <label style="font-size: 12px; color: #71717a;">장르</label>
+        <span class="cl-tip">
+          <span class="cl-tip-icon">i</span>
+          <span class="cl-tip-content"><strong>장르 입력 팁</strong><br>"하이퍼캐주얼", "전략", "퍼즐" 등 자유롭게 입력하세요. AI가 평가할 때 장르 특성을 고려합니다.</span>
+        </span>
+      </div>
+      <input type="text" placeholder="하이퍼캐주얼" style="width: 100%; background: #000; border: 0.5px solid #262626; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+    </div>
+  </div>
+
+</div>
+
+<button style="width: 100%; background: #fff; color: #000; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; margin-bottom: 32px;">분석 시작</button>
+
+<div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 20px;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+    <div style="display: flex; align-items: center;">
+      <div style="font-size: 13px; font-weight: 500;">분석 진행 상황</div>
+      <span class="cl-tip">
+        <span class="cl-tip-icon">i</span>
+        <span class="cl-tip-content"><strong>분석은 어떻게 진행되나요?</strong><br>영상을 5장면으로 쪼개고, 6개 축을 동시에 평가한 뒤, 점수 편향을 줄이기 위해 한 번 더 검증해요. 마지막에 종합 등급을 산출합니다.</span>
+      </span>
+    </div>
+    <div style="font-size: 12px; color: #71717a;">8 / 10 단계 완료</div>
+  </div>
+  <p style="font-size: 11px; color: #71717a; margin: 0 0 16px;">영상 한 편을 6축 프레임으로 평가하는 데 약 30~40초 걸려요.</p>
+
+  <div style="display: flex; flex-direction: column; gap: 8px;">
+
+    <div style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: #000; border-radius: 6px; border: 0.5px solid #262626;">
+      <div style="width: 16px; height: 16px; background: #00d68f; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000;">✓</div>
+      <div style="flex: 1; display: flex; align-items: center;">
+        <span style="font-size: 13px;">영상 준비</span>
+        <span class="cl-tip">
+          <span class="cl-tip-icon">i</span>
+          <span class="cl-tip-content"><strong>영상 준비 단계</strong><br>영상에서 5장면(0%/5%/25%/50%/95% 지점)을 추출하고, 음성을 텍스트로 변환해요. AI가 영상 내용을 이해하기 위한 사전 작업입니다.</span>
+        </span>
+      </div>
+      <span style="font-size: 12px; color: #71717a; font-family: 'JetBrains Mono', monospace;">3.2초</span>
+    </div>
+
+    <div style="padding: 12px; background: #000; border-radius: 6px; border: 0.5px solid #262626;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+        <div style="display: flex; align-items: center;">
+          <span style="font-size: 11px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em;">6축 평가 (병렬 실행 중)</span>
+          <span class="cl-tip">
+            <span class="cl-tip-icon">i</span>
+            <span class="cl-tip-content"><strong>6축이 뭔가요?</strong><br>슈퍼센트 자체 평가 프레임이에요. 변화 3축(움직임·성장·확장)은 시선을 끄는 요소를, 연출 3축(카메라·컬러·사운드)은 메시지 전달을 평가합니다.</span>
+          </span>
+        </div>
+        <span style="font-size: 11px; color: #71717a;">5 / 6 완료</span>
+      </div>
+      <p style="font-size: 11px; color: #71717a; margin: 0 0 10px;">변화 3축과 연출 3축을 동시에 평가합니다.</p>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #0a0a0a; border-radius: 4px; border: 0.5px solid #262626;">
+          <div style="width: 12px; height: 12px; background: #00d68f; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #000;">✓</div>
+          <div>
+            <div style="font-size: 11px; color: #fff;">움직임</div>
+            <div style="font-size: 10px; color: #71717a;">변화 3축</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #0a0a0a; border-radius: 4px; border: 0.5px solid #262626;">
+          <div style="width: 12px; height: 12px; background: #00d68f; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #000;">✓</div>
+          <div>
+            <div style="font-size: 11px; color: #fff;">성장</div>
+            <div style="font-size: 10px; color: #71717a;">변화 3축</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #0a0a0a; border-radius: 4px; border: 0.5px solid #262626;">
+          <div style="width: 12px; height: 12px; background: #00d68f; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #000;">✓</div>
+          <div>
+            <div style="font-size: 11px; color: #fff;">확장</div>
+            <div style="font-size: 10px; color: #71717a;">변화 3축</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #0a0a0a; border-radius: 4px; border: 0.5px solid #262626;">
+          <div style="width: 12px; height: 12px; background: #00d68f; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #000;">✓</div>
+          <div>
+            <div style="font-size: 11px; color: #fff;">카메라</div>
+            <div style="font-size: 10px; color: #71717a;">연출 3축</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #0a0a0a; border-radius: 4px; border: 0.5px solid #262626;">
+          <div style="width: 12px; height: 12px; background: #00d68f; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #000;">✓</div>
+          <div>
+            <div style="font-size: 11px; color: #fff;">컬러</div>
+            <div style="font-size: 10px; color: #71717a;">연출 3축</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #0a0a0a; border-radius: 4px; border: 0.5px solid #404040;">
+          <div style="width: 12px; height: 12px; border: 1.5px solid #f5a524; border-top-color: transparent; border-radius: 50%;"></div>
+          <div>
+            <div style="font-size: 11px; color: #fff;">사운드</div>
+            <div style="font-size: 10px; color: #71717a;">연출 3축</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: #000; border-radius: 6px; border: 0.5px solid #262626;">
+      <div style="width: 16px; height: 16px; border: 0.5px solid #404040; border-radius: 50%;"></div>
+      <div style="flex: 1; display: flex; align-items: center;">
+        <span style="font-size: 13px; color: #a1a1aa;">교차 검증</span>
+        <span class="cl-tip">
+          <span class="cl-tip-icon">i</span>
+          <span class="cl-tip-content"><strong>교차 검증이 뭔가요?</strong><br>같은 영상을 6축을 한꺼번에, 다른 순서로 다시 평가해요. 1차 평가의 점수 편향을 줄이는 역할입니다. 두 결과를 비교해서 점수 차이가 큰 축을 찾아냅니다.</span>
+        </span>
+      </div>
+      <span style="font-size: 12px; color: #71717a;">대기</span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: #000; border-radius: 6px; border: 0.5px solid #262626;">
+      <div style="width: 16px; height: 16px; border: 0.5px solid #404040; border-radius: 50%;"></div>
+      <div style="flex: 1; display: flex; align-items: center;">
+        <span style="font-size: 13px; color: #a1a1aa;">등급 산출</span>
+        <span class="cl-tip">
+          <span class="cl-tip-icon">i</span>
+          <span class="cl-tip-content"><strong>등급은 어떻게 결정되나요?</strong><br>6축 모두 4점 이상이면 우수, 3점 이상이면 보통, 그 외는 약함이에요. 한 축이라도 약하면 전체 등급이 낮아져요 (가장 약한 축이 기준).</span>
+        </span>
+      </div>
+      <span style="font-size: 12px; color: #71717a;">대기</span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: #000; border-radius: 6px; border: 0.5px solid #262626;">
+      <div style="width: 16px; height: 16px; border: 0.5px solid #404040; border-radius: 50%;"></div>
+      <div style="flex: 1; display: flex; align-items: center;">
+        <span style="font-size: 13px; color: #a1a1aa;">검색 인덱싱</span>
+        <span class="cl-tip">
+          <span class="cl-tip-icon">i</span>
+          <span class="cl-tip-content"><strong>검색 인덱싱이 뭔가요?</strong><br>나중에 "사운드가 약한 영상" 같은 자연스러운 표현으로 비슷한 영상을 찾을 수 있도록, 영상 내용을 의미 기반으로 정리해두는 단계예요.</span>
+        </span>
+      </div>
+      <span style="font-size: 12px; color: #71717a;">대기</span>
+    </div>
+
+  </div>
+</div>
+
+</div>
+</div>
+</body>
+</html>

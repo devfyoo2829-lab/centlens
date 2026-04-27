@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CentLens — 페이지 3: 분석한 영상 모음</title>
+<style>
+  body {
+    margin: 0;
+    background: #18181b;
+    padding: 40px 20px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .cl-tip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: help;
+    margin-left: 4px;
+  }
+  .cl-tip-icon {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 0.5px solid #404040;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #71717a;
+    font-size: 9px;
+    font-weight: 500;
+    font-style: italic;
+    font-family: Georgia, serif;
+  }
+  .cl-tip:hover .cl-tip-icon {
+    color: #fff;
+    border-color: #71717a;
+  }
+  .cl-tip-content {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0a0a0a;
+    border: 0.5px solid #404040;
+    border-radius: 8px;
+    padding: 10px 12px;
+    width: 240px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #d4d4d8;
+    z-index: 100;
+    text-align: left;
+    font-weight: 400;
+    transition: opacity 0.15s, visibility 0.15s;
+    pointer-events: none;
+    font-style: normal;
+  }
+  .cl-tip:hover .cl-tip-content {
+    visibility: visible;
+    opacity: 1;
+  }
+  .cl-tip-content::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: #404040;
+  }
+  .cl-tip-content strong {
+    color: #fff;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<div style="background: #000; color: #fff; padding: 24px; border-radius: 12px; min-height: 800px;">
+
+<div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 20px; border-bottom: 0.5px solid #262626; margin-bottom: 32px;">
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <div style="width: 28px; height: 28px; background: #fff; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+      <span style="color: #000; font-weight: 500; font-size: 14px;">CL</span>
+    </div>
+    <span style="font-weight: 500; font-size: 15px;">CentLens</span>
+  </div>
+  <div style="display: flex; gap: 4px;">
+    <button style="background: transparent; color: #a1a1aa; border: 0.5px solid transparent; padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;">새 영상 분석</button>
+    <button style="background: transparent; color: #a1a1aa; border: 0.5px solid transparent; padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;">영상 상세</button>
+    <button style="background: #0a0a0a; color: #fff; border: 0.5px solid #262626; padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;">분석한 영상 모음</button>
+  </div>
+</div>
+
+<div style="margin-bottom: 24px;">
+  <h1 style="font-size: 22px; font-weight: 500; margin: 0 0 8px;">분석한 영상 모음</h1>
+  <p style="font-size: 14px; color: #a1a1aa; margin: 0;">지금까지 5편 분석 · 자사 신규 3편 · 경쟁사 2편</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px;">
+  <div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 16px;">
+    <div style="display: flex; align-items: center; margin-bottom: 4px;">
+      <span style="font-size: 11px; color: #71717a;">전체 영상</span>
+    </div>
+    <div style="font-size: 24px; font-weight: 500; font-family: 'JetBrains Mono', monospace;">5</div>
+  </div>
+  <div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 16px;">
+    <div style="display: flex; align-items: center; margin-bottom: 4px;">
+      <span style="font-size: 11px; color: #71717a;">평균 총점</span>
+      <span class="cl-tip">
+        <span class="cl-tip-icon">i</span>
+        <span class="cl-tip-content"><strong>평균 총점</strong><br>분석한 영상들의 6축 점수 합계 평균이에요. 30점 만점 (각 축 5점 × 6축).</span>
+      </span>
+    </div>
+    <div style="font-size: 24px; font-weight: 500; font-family: 'JetBrains Mono', monospace;">21.97</div>
+    <div style="font-size: 10px; color: #71717a; margin-top: 2px;">30점 만점</div>
+  </div>
+  <div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 16px;">
+    <div style="display: flex; align-items: center; margin-bottom: 4px;">
+      <span style="font-size: 11px; color: #71717a;">가장 잘된 축 평균</span>
+      <span class="cl-tip">
+        <span class="cl-tip-icon">i</span>
+        <span class="cl-tip-content"><strong>가장 잘된 축 평균</strong><br>6축 중 평균 점수가 가장 높은 축이에요. 우리가 분석한 영상들이 어떤 측면에서 강한지 알 수 있어요.</span>
+      </span>
+    </div>
+    <div style="font-size: 24px; font-weight: 500; font-family: 'JetBrains Mono', monospace; color: #a78bfa;">4.05</div>
+    <div style="font-size: 10px; color: #71717a; margin-top: 2px;">움직임</div>
+  </div>
+  <div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 16px;">
+    <div style="display: flex; align-items: center; margin-bottom: 4px;">
+      <span style="font-size: 11px; color: #71717a;">가장 약한 축 평균</span>
+      <span class="cl-tip">
+        <span class="cl-tip-icon">i</span>
+        <span class="cl-tip-content"><strong>가장 약한 축 평균</strong><br>6축 중 평균 점수가 가장 낮은 축이에요. 다음 광고 제작 시 보완이 필요한 영역을 알려줍니다.</span>
+      </span>
+    </div>
+    <div style="font-size: 24px; font-weight: 500; font-family: 'JetBrains Mono', monospace; color: #34d399;">3.42</div>
+    <div style="font-size: 10px; color: #71717a; margin-top: 2px;">사운드</div>
+  </div>
+</div>
+
+<div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+  <div style="display: flex; align-items: center; margin-bottom: 4px;">
+    <span style="font-size: 13px; font-weight: 500;">의미로 영상 찾기</span>
+    <span class="cl-tip">
+      <span class="cl-tip-icon">i</span>
+      <span class="cl-tip-content"><strong>의미로 영상 찾기</strong><br>키워드가 아닌 의미로 검색해요. 영상의 평가 내용을 AI가 이해해서, 입력하신 표현과 가장 가까운 영상을 찾아줍니다. "사운드가 약한"처럼 점수 특성으로도, "캐릭터 변화"처럼 시각 요소로도 검색 가능해요.</span>
+    </span>
+  </div>
+  <p style="font-size: 11px; color: #71717a; margin: 0 0 12px;">자연스러운 표현으로 검색해보세요. AI가 의미를 이해해서 가장 가까운 영상을 찾아줍니다.</p>
+  <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+    <input type="text" value="확장 축이 강한 시뮬레이션 게임 영상" style="flex: 1; background: #000; border: 0.5px solid #404040; color: #fff; padding: 10px 14px; border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+    <button style="background: #fff; color: #000; border: none; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;">찾기</button>
+  </div>
+  <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+    <span style="font-size: 11px; color: #71717a;">예시:</span>
+    <button style="background: #1a1a1a; color: #a1a1aa; border: 0.5px solid #262626; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">사운드가 약했던 경쟁사 영상</button>
+    <button style="background: #1a1a1a; color: #a1a1aa; border: 0.5px solid #262626; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">움직임이 강한 자사 영상</button>
+    <button style="background: #1a1a1a; color: #a1a1aa; border: 0.5px solid #262626; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">캐릭터 변화가 있는 영상</button>
+  </div>
+</div>
+
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+  <div style="display: flex; gap: 6px;">
+    <button style="background: #0a0a0a; color: #fff; border: 0.5px solid #404040; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">분류 ▾</button>
+    <button style="background: #0a0a0a; color: #a1a1aa; border: 0.5px solid #262626; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">등급 ▾</button>
+    <button style="background: #0a0a0a; color: #a1a1aa; border: 0.5px solid #262626; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">장르 ▾</button>
+  </div>
+  <div style="display: flex; align-items: center;">
+    <span style="font-size: 11px; color: #71717a;">정렬: 총점 ↓</span>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+
+  <div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 16px; cursor: pointer;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="background: #1a1a1a; color: #a1a1aa; padding: 2px 7px; border-radius: 4px; font-size: 10px; border: 0.5px solid #262626;">자사 신규</span>
+        <span style="font-size: 13px; font-weight: 500;">Pizza Ready</span>
+      </div>
+      <span style="background: #1a1a1a; color: #71717a; padding: 3px 8px; border-radius: 4px; font-size: 10px; border: 0.5px solid #71717a; font-weight: 500;">약함</span>
+    </div>
+    <div style="height: 80px; background: #000; border-radius: 6px; border: 0.5px solid #262626; margin-bottom: 12px;"></div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+      <span style="font-size: 11px; color: #71717a;">총점</span>
+      <span style="font-size: 14px; font-weight: 500; font-family: 'JetBrains Mono', monospace;">23.15</span>
+    </div>
+    <div style="display: flex; align-items: center; margin: 0 0 8px;">
+      <span style="font-size: 10px; color: #71717a;">변화 3축 · 연출 3축 점수</span>
+      <span class="cl-tip">
+        <span class="cl-tip-icon">i</span>
+        <span class="cl-tip-content"><strong>6축 미니 차트</strong><br>왼쪽부터 움직임·성장·확장(라벤더, 변화 3축), 카메라·컬러·사운드(민트, 연출 3축) 순이에요. 막대 길이가 점수예요.</span>
+      </span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;">
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 80%; background: #a78bfa; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 60%; background: #a78bfa; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 75%; background: #a78bfa; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 70%; background: #34d399; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 80%; background: #34d399; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: #34d399; border-radius: 2px;"></div></div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+      <span style="font-size: 10px; color: #71717a;">가장 약한 축: 성장</span>
+      <span style="font-size: 10px; color: #71717a;">하이퍼캐주얼 · Supercent</span>
+    </div>
+  </div>
+
+  <div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 16px; cursor: pointer;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="background: #1a1a1a; color: #a1a1aa; padding: 2px 7px; border-radius: 4px; font-size: 10px; border: 0.5px solid #262626;">자사 신규</span>
+        <span style="font-size: 13px; font-weight: 500;">Burger Please</span>
+      </div>
+      <span style="background: #1a1a1a; color: #71717a; padding: 3px 8px; border-radius: 4px; font-size: 10px; border: 0.5px solid #71717a; font-weight: 500;">약함</span>
+    </div>
+    <div style="height: 80px; background: #000; border-radius: 6px; border: 0.5px solid #262626; margin-bottom: 12px;"></div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+      <span style="font-size: 11px; color: #71717a;">총점</span>
+      <span style="font-size: 14px; font-weight: 500; font-family: 'JetBrains Mono', monospace;">21.80</span>
+    </div>
+    <p style="font-size: 10px; color: #71717a; margin: 0 0 8px;">변화 3축 · 연출 3축 점수</p>
+    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;">
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 87%; background: #a78bfa; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: #a78bfa; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 70%; background: #a78bfa; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 73%; background: #34d399; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 81%; background: #34d399; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 73%; background: #34d399; border-radius: 2px;"></div></div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+      <span style="font-size: 10px; color: #71717a;">가장 약한 축: 성장</span>
+      <span style="font-size: 10px; color: #71717a;">하이퍼캐주얼 · Supercent</span>
+    </div>
+  </div>
+
+  <div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 16px; cursor: pointer;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="background: #1a1a1a; color: #a1a1aa; padding: 2px 7px; border-radius: 4px; font-size: 10px; border: 0.5px solid #262626;">경쟁사</span>
+        <span style="font-size: 13px; font-weight: 500;">Kingshot</span>
+      </div>
+      <span style="background: #1a1a1a; color: #71717a; padding: 3px 8px; border-radius: 4px; font-size: 10px; border: 0.5px solid #71717a; font-weight: 500;">약함</span>
+    </div>
+    <div style="height: 80px; background: #000; border-radius: 6px; border: 0.5px solid #262626; margin-bottom: 12px;"></div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+      <span style="font-size: 11px; color: #71717a;">총점</span>
+      <span style="font-size: 14px; font-weight: 500; font-family: 'JetBrains Mono', monospace;">22.05</span>
+    </div>
+    <p style="font-size: 10px; color: #71717a; margin: 0 0 8px;">변화 3축 · 연출 3축 점수</p>
+    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;">
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 87%; background: #a78bfa; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 62%; background: #a78bfa; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 75%; background: #a78bfa; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 73%; background: #34d399; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 70%; background: #34d399; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 73%; background: #34d399; border-radius: 2px;"></div></div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+      <span style="font-size: 10px; color: #71717a;">가장 약한 축: 사운드</span>
+      <span style="font-size: 10px; color: #71717a;">전략 · Century Games</span>
+    </div>
+  </div>
+
+  <div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 16px; cursor: pointer;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="background: #1a1a1a; color: #a1a1aa; padding: 2px 7px; border-radius: 4px; font-size: 10px; border: 0.5px solid #262626;">자사 신규</span>
+        <span style="font-size: 13px; font-weight: 500;">Snake Clash</span>
+      </div>
+      <span style="background: #1a1a1a; color: #71717a; padding: 3px 8px; border-radius: 4px; font-size: 10px; border: 0.5px solid #71717a; font-weight: 500;">약함</span>
+    </div>
+    <div style="height: 80px; background: #000; border-radius: 6px; border: 0.5px solid #262626; margin-bottom: 12px;"></div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+      <span style="font-size: 11px; color: #71717a;">총점</span>
+      <span style="font-size: 14px; font-weight: 500; font-family: 'JetBrains Mono', monospace;">21.60</span>
+    </div>
+    <p style="font-size: 10px; color: #71717a; margin: 0 0 8px;">변화 3축 · 연출 3축 점수</p>
+    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;">
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 75%; background: #a78bfa; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 80%; background: #a78bfa; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 70%; background: #a78bfa; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 75%; background: #34d399; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 70%; background: #34d399; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: #34d399; border-radius: 2px;"></div></div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+      <span style="font-size: 10px; color: #71717a;">가장 약한 축: 사운드</span>
+      <span style="font-size: 10px; color: #71717a;">하이브리드 · Supercent</span>
+    </div>
+  </div>
+
+  <div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 16px; cursor: pointer;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="background: #1a1a1a; color: #a1a1aa; padding: 2px 7px; border-radius: 4px; font-size: 10px; border: 0.5px solid #262626;">경쟁사</span>
+        <span style="font-size: 13px; font-weight: 500;">Twerk Race 3D</span>
+      </div>
+      <span style="background: #1a1a1a; color: #71717a; padding: 3px 8px; border-radius: 4px; font-size: 10px; border: 0.5px solid #71717a; font-weight: 500;">약함</span>
+    </div>
+    <div style="height: 80px; background: #000; border-radius: 6px; border: 0.5px solid #262626; margin-bottom: 12px;"></div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+      <span style="font-size: 11px; color: #71717a;">총점</span>
+      <span style="font-size: 14px; font-weight: 500; font-family: 'JetBrains Mono', monospace;">21.25</span>
+    </div>
+    <p style="font-size: 10px; color: #71717a; margin: 0 0 8px;">변화 3축 · 연출 3축 점수</p>
+    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;">
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 70%; background: #a78bfa; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 75%; background: #a78bfa; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 65%; background: #a78bfa; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 75%; background: #34d399; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 70%; background: #34d399; border-radius: 2px;"></div></div>
+      <div style="height: 18px; background: #1a1a1a; border-radius: 2px; position: relative;"><div style="position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: #34d399; border-radius: 2px;"></div></div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+      <span style="font-size: 10px; color: #71717a;">가장 약한 축: 사운드</span>
+      <span style="font-size: 10px; color: #71717a;">하이퍼캐주얼 · Freeplay</span>
+    </div>
+  </div>
+
+</div>
+
+</div>
+</div>
+</body>
+</html>

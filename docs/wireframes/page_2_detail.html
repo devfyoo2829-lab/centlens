@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CentLens — 페이지 2: 영상 상세</title>
+<style>
+  body {
+    margin: 0;
+    background: #18181b;
+    padding: 40px 20px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .cl-tip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: help;
+    margin-left: 4px;
+  }
+  .cl-tip-icon {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 0.5px solid #404040;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #71717a;
+    font-size: 9px;
+    font-weight: 500;
+    font-style: italic;
+    font-family: Georgia, serif;
+  }
+  .cl-tip:hover .cl-tip-icon {
+    color: #fff;
+    border-color: #71717a;
+  }
+  .cl-tip-content {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0a0a0a;
+    border: 0.5px solid #404040;
+    border-radius: 8px;
+    padding: 10px 12px;
+    width: 240px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #d4d4d8;
+    z-index: 100;
+    text-align: left;
+    font-weight: 400;
+    transition: opacity 0.15s, visibility 0.15s;
+    pointer-events: none;
+    font-style: normal;
+  }
+  .cl-tip:hover .cl-tip-content {
+    visibility: visible;
+    opacity: 1;
+  }
+  .cl-tip-content::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: #404040;
+  }
+  .cl-tip-content strong {
+    color: #fff;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<div style="background: #000; color: #fff; padding: 24px; border-radius: 12px; min-height: 800px;">
+
+<div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 20px; border-bottom: 0.5px solid #262626; margin-bottom: 32px;">
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <div style="width: 28px; height: 28px; background: #fff; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+      <span style="color: #000; font-weight: 500; font-size: 14px;">CL</span>
+    </div>
+    <span style="font-weight: 500; font-size: 15px;">CentLens</span>
+  </div>
+  <div style="display: flex; gap: 4px;">
+    <button style="background: transparent; color: #a1a1aa; border: 0.5px solid transparent; padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;">새 영상 분석</button>
+    <button style="background: #0a0a0a; color: #fff; border: 0.5px solid #262626; padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;">영상 상세</button>
+    <button style="background: transparent; color: #a1a1aa; border: 0.5px solid transparent; padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;">분석한 영상 모음</button>
+  </div>
+</div>
+
+<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+  <span style="font-size: 12px; color: #a1a1aa; font-weight: 500;">← 분석한 영상 모음</span>
+</div>
+
+<div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px;">
+  <div>
+    <h1 style="font-size: 22px; font-weight: 500; margin: 0 0 8px;">Kingshot</h1>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="background: #1a1a1a; color: #a1a1aa; padding: 3px 8px; border-radius: 4px; font-size: 11px; border: 0.5px solid #262626;">경쟁사</span>
+      <span style="font-size: 12px; color: #71717a;">전략 · Century Games · 2026.04.28 분석</span>
+    </div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <div style="text-align: right;">
+      <div style="display: flex; align-items: center; justify-content: flex-end; margin-bottom: 2px;">
+        <span style="font-size: 11px; color: #71717a;">종합 등급</span>
+        <span class="cl-tip">
+          <span class="cl-tip-icon">i</span>
+          <span class="cl-tip-content"><strong>등급 기준</strong><br>6축 모두 4점 이상이면 <strong>우수</strong>, 3점 이상이면 <strong>보통</strong>, 그 외는 <strong>약함</strong>. 가장 약한 축이 전체 등급을 결정해요.</span>
+        </span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="background: #1a1a1a; color: #71717a; padding: 4px 10px; border-radius: 6px; font-size: 12px; border: 0.5px solid #71717a; font-weight: 500;">약함</span>
+        <span style="font-size: 18px; font-weight: 500; font-family: 'JetBrains Mono', monospace;">22.05</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px;">
+  <div style="width: 200px; height: 112px; background: #000; border-radius: 8px; border: 0.5px solid #262626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+    <div style="width: 32px; height: 32px; background: #1a1a1a; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 0.5px solid #262626;">
+      <div style="width: 0; height: 0; border-left: 8px solid #fff; border-top: 5px solid transparent; border-bottom: 5px solid transparent; margin-left: 2px;"></div>
+    </div>
+  </div>
+  <div style="flex: 1;">
+    <div style="display: flex; align-items: center; margin-bottom: 2px;">
+      <span style="font-size: 12px; color: #a1a1aa;">영상에서 추출한 5장면</span>
+      <span class="cl-tip">
+        <span class="cl-tip-icon">i</span>
+        <span class="cl-tip-content"><strong>왜 5장면만?</strong><br>영상의 시작·초반·중반·후반·종료 시점에서 한 장씩 골라 AI에게 보여줘요. 핵심 장면이 균등히 포함되도록 0%, 5%, 25%, 50%, 95% 지점에서 추출합니다.</span>
+      </span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px;">
+      <div style="aspect-ratio: 16/9; background: #1a1a1a; border-radius: 4px; border: 0.5px solid #262626;"></div>
+      <div style="aspect-ratio: 16/9; background: #1a1a1a; border-radius: 4px; border: 0.5px solid #262626;"></div>
+      <div style="aspect-ratio: 16/9; background: #1a1a1a; border-radius: 4px; border: 0.5px solid #262626;"></div>
+      <div style="aspect-ratio: 16/9; background: #1a1a1a; border-radius: 4px; border: 0.5px solid #262626;"></div>
+      <div style="aspect-ratio: 16/9; background: #1a1a1a; border-radius: 4px; border: 0.5px solid #262626;"></div>
+    </div>
+  </div>
+</div>
+
+<div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 16px;">
+  <div style="display: flex; align-items: center;">
+    <h2 style="font-size: 16px; font-weight: 500; margin: 0;">6축 평가</h2>
+    <span class="cl-tip">
+      <span class="cl-tip-icon">i</span>
+      <span class="cl-tip-content"><strong>6축이란?</strong><br>슈퍼센트 자체 평가 프레임이에요. <strong>변화 3축</strong>(움직임·성장·확장)은 시선을 끄는 요소를, <strong>연출 3축</strong>(카메라·컬러·사운드)은 메시지 전달을 평가합니다. 각 축을 1~5점으로 채점해요.</span>
+    </span>
+  </div>
+  <div style="display: flex; align-items: center;">
+    <span style="font-size: 12px; color: #71717a;">가장 약한 축: <span style="color: #a1a1aa;">사운드 · 3.65점</span></span>
+    <span class="cl-tip">
+      <span class="cl-tip-icon">i</span>
+      <span class="cl-tip-content"><strong>가장 약한 축</strong><br>6축 중 final 점수가 가장 낮은 축이에요. 이 축의 점수가 3점 미만이면 등급이 약함으로 떨어집니다.</span>
+    </span>
+  </div>
+</div>
+
+<div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+  <div style="margin-bottom: 14px;">
+    <div style="display: flex; align-items: center;">
+      <span style="font-size: 11px; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;">변화 3축</span>
+      <span class="cl-tip">
+        <span class="cl-tip-icon">i</span>
+        <span class="cl-tip-content"><strong>변화 3축</strong><br>유저의 시선을 끄는 변화 요소예요. 광고 영상에서 처음 3초 안에 시선을 잡으려면 강한 변화가 필요합니다.</span>
+      </span>
+    </div>
+    <div style="font-size: 11px; color: #71717a; margin-top: 2px;">유저의 시선을 끄는 변화 — 움직임·성장·확장</div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+
+    <div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+        <div style="display: flex; align-items: center;">
+          <span style="font-size: 13px; color: #fff;">움직임</span>
+          <span class="cl-tip">
+            <span class="cl-tip-icon">i</span>
+            <span class="cl-tip-content"><strong>움직임</strong><br>유저의 시선을 잡는 시각적 변화. 절단·쏟아짐·튕김 같은 물리적 움직임이 강할수록 점수가 높아요. 햄버거가 우르르 쏟아지거나 유리병이 터지는 장면 같은 것.</span>
+          </span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 11px; color: #71717a; font-family: 'JetBrains Mono', monospace;">1차 4.20 · 검증 4.50</span>
+          <span style="font-size: 14px; font-weight: 500; font-family: 'JetBrains Mono', monospace; min-width: 36px; text-align: right;">4.35</span>
+        </div>
+      </div>
+      <div style="height: 4px; background: #1a1a1a; border-radius: 2px; overflow: hidden;">
+        <div style="height: 100%; width: 87%; background: #a78bfa;"></div>
+      </div>
+    </div>
+
+    <div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+        <div style="display: flex; align-items: center;">
+          <span style="font-size: 13px; color: #fff;">성장</span>
+          <span class="cl-tip">
+            <span class="cl-tip-icon">i</span>
+            <span class="cl-tip-content"><strong>성장</strong><br>플레이어 캐릭터의 변화. 외형이 바뀌거나 능력치가 상승하는 장면이 명확할수록 점수가 높아요. 게이트를 통과하며 캐릭터가 커지거나 변신하는 연출 같은 것.</span>
+          </span>
+          <span style="background: rgba(245, 165, 36, 0.1); color: #f5a524; padding: 1px 6px; border-radius: 3px; font-size: 10px; border: 0.5px solid rgba(245, 165, 36, 0.3); margin-left: 8px;">관점 차이 큼</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 11px; color: #71717a; font-family: 'JetBrains Mono', monospace;">1차 4.20 · 검증 2.00</span>
+          <span style="font-size: 14px; font-weight: 500; font-family: 'JetBrains Mono', monospace; min-width: 36px; text-align: right;">3.10</span>
+        </div>
+      </div>
+      <div style="height: 4px; background: #1a1a1a; border-radius: 2px; overflow: hidden;">
+        <div style="height: 100%; width: 62%; background: #a78bfa;"></div>
+      </div>
+    </div>
+
+    <div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+        <div style="display: flex; align-items: center;">
+          <span style="font-size: 13px; color: #fff;">확장</span>
+          <span class="cl-tip">
+            <span class="cl-tip-icon">i</span>
+            <span class="cl-tip-content"><strong>확장</strong><br>공간이 넓어지거나 시스템이 변화. 매장이 늘어나거나 새로운 기능이 추가되는 장면이 강할수록 점수가 높아요. 1층 매장이 2층 빌딩으로 확장되는 장면 같은 것.</span>
+          </span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 11px; color: #71717a; font-family: 'JetBrains Mono', monospace;">1차 4.00 · 검증 3.50</span>
+          <span style="font-size: 14px; font-weight: 500; font-family: 'JetBrains Mono', monospace; min-width: 36px; text-align: right;">3.75</span>
+        </div>
+      </div>
+      <div style="height: 4px; background: #1a1a1a; border-radius: 2px; overflow: hidden;">
+        <div style="height: 100%; width: 75%; background: #a78bfa;"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+  <div style="margin-bottom: 14px;">
+    <div style="display: flex; align-items: center;">
+      <span style="font-size: 11px; color: #34d399; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;">연출 3축</span>
+      <span class="cl-tip">
+        <span class="cl-tip-icon">i</span>
+        <span class="cl-tip-content"><strong>연출 3축</strong><br>정보 전달과 몰입을 만드는 연출 요소예요. 시선을 잡은 후 메시지를 효과적으로 전달하기 위해 필요합니다.</span>
+      </span>
+    </div>
+    <div style="font-size: 11px; color: #71717a; margin-top: 2px;">정보 전달과 몰입을 만드는 연출 — 카메라·컬러·사운드</div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+
+    <div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+        <div style="display: flex; align-items: center;">
+          <span style="font-size: 13px; color: #fff;">카메라</span>
+          <span class="cl-tip">
+            <span class="cl-tip-icon">i</span>
+            <span class="cl-tip-content"><strong>카메라</strong><br>시점·앵글·전환의 다양성. 탑뷰에서 측면뷰로 전환되거나, 카메라가 따라가며 정보를 추가로 보여주는 연출이 강할수록 점수가 높아요.</span>
+          </span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 11px; color: #71717a; font-family: 'JetBrains Mono', monospace;">1차 3.80 · 검증 3.50</span>
+          <span style="font-size: 14px; font-weight: 500; font-family: 'JetBrains Mono', monospace; min-width: 36px; text-align: right;">3.65</span>
+        </div>
+      </div>
+      <div style="height: 4px; background: #1a1a1a; border-radius: 2px; overflow: hidden;">
+        <div style="height: 100%; width: 73%; background: #34d399;"></div>
+      </div>
+    </div>
+
+    <div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+        <div style="display: flex; align-items: center;">
+          <span style="font-size: 13px; color: #fff;">컬러</span>
+          <span class="cl-tip">
+            <span class="cl-tip-icon">i</span>
+            <span class="cl-tip-content"><strong>컬러</strong><br>색상 대비와 의미 전달. 핵심 오브젝트가 난색으로 시선을 끌고 배경이 차분한 톤으로 받쳐주는 식의 색상 활용이 강할수록 점수가 높아요.</span>
+          </span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 11px; color: #71717a; font-family: 'JetBrains Mono', monospace;">1차 3.50 · 검증 3.50</span>
+          <span style="font-size: 14px; font-weight: 500; font-family: 'JetBrains Mono', monospace; min-width: 36px; text-align: right;">3.50</span>
+        </div>
+      </div>
+      <div style="height: 4px; background: #1a1a1a; border-radius: 2px; overflow: hidden;">
+        <div style="height: 100%; width: 70%; background: #34d399;"></div>
+      </div>
+    </div>
+
+    <div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+        <div style="display: flex; align-items: center;">
+          <span style="font-size: 13px; color: #71717a;">사운드 (가장 약한 축)</span>
+          <span class="cl-tip">
+            <span class="cl-tip-icon">i</span>
+            <span class="cl-tip-content"><strong>사운드</strong><br>나레이션·효과음·BGM의 활용도. 강조 구간에 효과음을 매칭하거나 나레이션 톤이 변화하며 몰입을 만드는 연출이 강할수록 점수가 높아요.</span>
+          </span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 11px; color: #71717a; font-family: 'JetBrains Mono', monospace;">1차 3.50 · 검증 3.80</span>
+          <span style="font-size: 14px; font-weight: 500; font-family: 'JetBrains Mono', monospace; min-width: 36px; text-align: right;">3.65</span>
+        </div>
+      </div>
+      <div style="height: 4px; background: #1a1a1a; border-radius: 2px; overflow: hidden;">
+        <div style="height: 100%; width: 73%; background: #34d399;"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="background: rgba(245, 165, 36, 0.04); border: 0.5px solid rgba(245, 165, 36, 0.2); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+  <div style="margin-bottom: 14px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+      <div style="display: flex; align-items: center;">
+        <span style="font-size: 13px; font-weight: 500;">성장 축 — 두 가지 관점이 갈림</span>
+        <span class="cl-tip">
+          <span class="cl-tip-icon">i</span>
+          <span class="cl-tip-content"><strong>왜 두 점수가 다를까요?</strong><br>AI가 6축을 각각 따로 본 결과(1차)와 6축을 한꺼번에 다시 본 결과(검증)를 비교해요. 차이가 1점 이상이면 한 영상에 여러 해석이 가능하다는 신호예요. 마케터의 판단이 중요해지는 영역입니다.</span>
+        </span>
+      </div>
+      <span style="background: rgba(245, 165, 36, 0.1); color: #f5a524; padding: 4px 10px; border-radius: 6px; font-size: 11px; border: 0.5px solid rgba(245, 165, 36, 0.3); font-family: 'JetBrains Mono', monospace; font-weight: 500;">점수 차이 2.20</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+    <div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 8px; padding: 14px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+        <div style="display: flex; align-items: center;">
+          <span style="font-size: 11px; color: #a1a1aa; font-weight: 500;">1차 평가</span>
+          <span class="cl-tip">
+            <span class="cl-tip-icon">i</span>
+            <span class="cl-tip-content"><strong>1차 평가</strong><br>6개 축을 각각 독립된 AI가 따로 평가했어요. 다른 축의 결과를 모르는 상태에서 자기 축만 봅니다.</span>
+          </span>
+        </div>
+        <span style="font-size: 14px; font-weight: 500; font-family: 'JetBrains Mono', monospace;">4.20</span>
+      </div>
+      <p style="font-size: 12px; color: #d4d4d8; margin: 0; line-height: 1.6;">코인 카운터가 0→2→5→24→35로 급증하며, 패배한 적이 대량의 금화로 변환되는 장면이 플레이어의 자원 획득 및 성장 루프를 시각적으로 제시할 가능성.</p>
+    </div>
+    <div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 8px; padding: 14px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+        <div style="display: flex; align-items: center;">
+          <span style="font-size: 11px; color: #a1a1aa; font-weight: 500;">교차 검증</span>
+          <span class="cl-tip">
+            <span class="cl-tip-icon">i</span>
+            <span class="cl-tip-content"><strong>교차 검증</strong><br>같은 영상을 6축을 한꺼번에, 다른 순서로 다시 평가해요. 1차 평가의 점수 편향을 줄이는 역할입니다.</span>
+          </span>
+        </div>
+        <span style="font-size: 14px; font-weight: 500; font-family: 'JetBrains Mono', monospace;">2.00</span>
+      </div>
+      <p style="font-size: 12px; color: #d4d4d8; margin: 0; line-height: 1.6;">프레임 1→5에서 플레이어 캐릭터의 외형이나 능력치 변화는 시각적으로 확인되지 않으며, 코인 증가 외에 캐릭터 자체가 '변화하는' 순간이 명확히 드러나지 않습니다.</p>
+    </div>
+  </div>
+</div>
+
+<div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+    <div style="display: flex; align-items: center;">
+      <span style="font-size: 13px; font-weight: 500;">분석 단계별 시간</span>
+      <span class="cl-tip">
+        <span class="cl-tip-icon">i</span>
+        <span class="cl-tip-content"><strong>분석 단계별 시간</strong><br>AI가 각 평가 단계를 처리한 시간이에요. 6개 축은 동시에(병렬) 진행되어, 한 번에 한 축씩 평가하는 것보다 빠릅니다.</span>
+      </span>
+    </div>
+    <a style="font-size: 12px; color: #0070f3; cursor: pointer;">상세 로그 보기 →</a>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 14px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: #000; border-radius: 4px;">
+      <span style="font-size: 11px; color: #a1a1aa;">영상 준비</span>
+      <span style="font-size: 11px; color: #71717a; font-family: 'JetBrains Mono', monospace;">5.7초</span>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: #000; border-radius: 4px;">
+      <span style="font-size: 11px; color: #a1a1aa;">움직임 평가</span>
+      <span style="font-size: 11px; color: #71717a; font-family: 'JetBrains Mono', monospace;">5.9초</span>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: #000; border-radius: 4px;">
+      <span style="font-size: 11px; color: #a1a1aa;">성장 평가</span>
+      <span style="font-size: 11px; color: #71717a; font-family: 'JetBrains Mono', monospace;">7.7초</span>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: #000; border-radius: 4px;">
+      <span style="font-size: 11px; color: #a1a1aa;">확장 평가</span>
+      <span style="font-size: 11px; color: #71717a; font-family: 'JetBrains Mono', monospace;">7.7초</span>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: #000; border-radius: 4px;">
+      <span style="font-size: 11px; color: #a1a1aa;">카메라 평가</span>
+      <span style="font-size: 11px; color: #71717a; font-family: 'JetBrains Mono', monospace;">6.1초</span>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: #000; border-radius: 4px;">
+      <span style="font-size: 11px; color: #a1a1aa;">컬러 평가</span>
+      <span style="font-size: 11px; color: #71717a; font-family: 'JetBrains Mono', monospace;">7.2초</span>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: #000; border-radius: 4px;">
+      <span style="font-size: 11px; color: #a1a1aa;">사운드 평가</span>
+      <span style="font-size: 11px; color: #71717a; font-family: 'JetBrains Mono', monospace;">6.3초</span>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: #000; border-radius: 4px; border: 0.5px solid #404040;">
+      <span style="font-size: 11px; color: #fff;">교차 검증</span>
+      <span style="font-size: 11px; color: #fff; font-family: 'JetBrains Mono', monospace;">19.1초</span>
+    </div>
+  </div>
+
+  <div style="margin-top: 12px; padding-top: 12px; border-top: 0.5px solid #262626; display: flex; align-items: center; justify-content: space-between;">
+    <span style="font-size: 11px; color: #71717a;">총 처리 시간</span>
+    <span style="font-size: 12px; font-weight: 500; font-family: 'JetBrains Mono', monospace;">36.16초</span>
+  </div>
+</div>
+
+<div style="background: #0a0a0a; border: 0.5px solid #262626; border-radius: 12px; padding: 20px;">
+  <div style="display: flex; align-items: center; margin-bottom: 4px;">
+    <span style="font-size: 13px; font-weight: 500;">마케터 코멘트</span>
+    <span class="cl-tip">
+      <span class="cl-tip-icon">i</span>
+      <span class="cl-tip-content"><strong>마케터 코멘트</strong><br>AI 평가와 다른 견해, 추가 인사이트가 있다면 기록해두세요. 나중에 영상을 다시 볼 때 의사결정 맥락이 됩니다.</span>
+    </span>
+  </div>
+  <p style="font-size: 11px; color: #71717a; margin: 0 0 12px;">AI 평가와 다른 견해, 추가 인사이트가 있다면 기록해두세요.</p>
+  <textarea placeholder="이 영상에 대한 의견..." style="width: 100%; background: #000; border: 0.5px solid #262626; color: #fff; padding: 10px 12px; border-radius: 6px; font-size: 13px; box-sizing: border-box; min-height: 80px; resize: vertical; font-family: inherit;"></textarea>
+  <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+    <button style="background: #fff; color: #000; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;">저장</button>
+  </div>
+</div>
+
+</div>
+</div>
+</body>
+</html>

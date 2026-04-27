@@ -12,3 +12,4 @@ typing-extensions>=4.9.0
 pillow>=10.0.0
 langsmith>=0.1.0
 langsmith>=0.1.0
+numpy>=1.26.0

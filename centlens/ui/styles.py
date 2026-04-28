@@ -9,10 +9,38 @@
 - 툴팁(``cl-tip``)은 시안 README의 30개 명세를 그대로 따름. ``tip_html()``로 inline 삽입.
 """
 
+import base64
 import re
+from pathlib import Path
 from typing import Optional
 
 import streamlit as st
+
+
+# ─── 로고 자산 ────────────────────────────────────────────────────────────────
+_LOGO_PATH = Path(__file__).resolve().parent.parent.parent / "assets" / "centlens_logo.png"
+
+
+def _logo_data_uri() -> Optional[str]:
+    """``assets/centlens_logo.png`` 을 data: URI로 인코딩. 파일 없으면 None."""
+    if not _LOGO_PATH.is_file():
+        return None
+    try:
+        b64 = base64.b64encode(_LOGO_PATH.read_bytes()).decode("ascii")
+        return f"data:image/png;base64,{b64}"
+    except Exception:
+        return None
+
+
+def _logo_pil() -> Optional[object]:
+    """파비콘용 PIL Image. Streamlit ``page_icon`` 은 PIL/path/URL 모두 허용."""
+    if not _LOGO_PATH.is_file():
+        return None
+    try:
+        from PIL import Image
+        return Image.open(_LOGO_PATH)
+    except Exception:
+        return None
 
 
 # ─── 디자인 토큰 ──────────────────────────────────────────────────────────────
@@ -125,6 +153,10 @@ a:hover { text-decoration: underline; }
   width: 28px; height: 28px; background: #fff; color: #000; border-radius: 4px;
   display: flex; align-items: center; justify-content: center;
   font-weight: 500; font-size: 14px;
+}
+.cl-logo-img {
+  width: 28px; height: 28px; border-radius: 4px;
+  object-fit: cover; display: block;
 }
 .cl-logo-name { font-weight: 500; font-size: 15px; color: #fff; }
 .cl-logo-tagline { font-size: 13px; color: #71717a; margin-left: 8px; }
@@ -505,10 +537,15 @@ a:hover { text-decoration: underline; }
 
 
 def configure_page(page_title: str = "CentLens") -> None:
-    """모든 페이지에서 가장 먼저 호출되는 page config + 베이스 스타일 주입."""
+    """모든 페이지에서 가장 먼저 호출되는 page config + 베이스 스타일 주입.
+
+    파비콘은 ``assets/centlens_logo.png`` 을 PIL 이미지로 로드해서 사용한다.
+    파일이 없으면 안전한 이모지 fallback.
+    """
+    logo = _logo_pil()
     st.set_page_config(
         page_title=page_title,
-        page_icon="🎯",
+        page_icon=logo if logo is not None else "🎯",
         layout="wide",
         initial_sidebar_state="collapsed",
         menu_items={"About": None, "Get help": None, "Report a bug": None},
@@ -536,11 +573,16 @@ def render_header(active: str) -> None:
         '<span class="cl-logo-tagline">슈퍼센트 6축 프레임으로 광고 영상을 들여다보는 도구</span>'
         if show_tagline else ""
     )
+    logo_uri = _logo_data_uri()
+    if logo_uri:
+        logo_html = f'<img src="{logo_uri}" class="cl-logo-img" alt="CentLens 로고" />'
+    else:
+        logo_html = '<div class="cl-logo-square">CL</div>'
     st.markdown(
         f"""
         <div class="cl-header">
           <div class="cl-header-left">
-            <div class="cl-logo-square">CL</div>
+            {logo_html}
             <span class="cl-logo-name">CentLens</span>
             {tagline_html}
           </div>

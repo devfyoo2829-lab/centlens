@@ -30,7 +30,7 @@ from centlens.ui.styles import (  # noqa: E402
 
 
 # ─── 페이지 설정 ──────────────────────────────────────────────────────────────
-configure_page(page_title="CentLens · 영상 상세")
+configure_page(page_title="영상 상세 · CentLens")
 render_header(active="detail")
 
 

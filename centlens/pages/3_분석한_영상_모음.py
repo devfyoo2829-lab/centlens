@@ -29,7 +29,7 @@ from centlens.ui.styles import (  # noqa: E402
 
 
 # ─── 페이지 설정 ──────────────────────────────────────────────────────────────
-configure_page(page_title="CentLens · 분석한 영상 모음")
+configure_page(page_title="분석한 영상 모음 · CentLens")
 render_header(active="archive")
 
 

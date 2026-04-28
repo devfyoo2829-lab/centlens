@@ -21,7 +21,7 @@ from centlens.ui.styles import (  # noqa: E402
 )
 
 
-configure_page(page_title="CentLens · 새 영상 분석")
+configure_page(page_title="새 영상 분석 · CentLens")
 render_header(active="upload")
 
 

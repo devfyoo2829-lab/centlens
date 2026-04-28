@@ -224,6 +224,191 @@ if search_clicked:
 active_query = st.session_state.search_query
 
 
+# ─── 5편 6축 레이더 비교 ──────────────────────────────────────────────────────
+import plotly.graph_objects as go  # noqa: E402
+
+# 카테고리별 색상 팔레트 (자사=라벤더 3종, 경쟁사=민트 2종)
+_NEW_PALETTE = ("#a78bfa", "#c4b5fd", "#7c3aed")
+_COMP_PALETTE = ("#34d399", "#6ee7b7")
+_TREND_PALETTE = ("#f5a524",)
+
+
+def _hex_to_rgba(hex_color: str, alpha: float) -> str:
+    h = hex_color.lstrip("#")
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return f"rgba({r},{g},{b},{alpha:.2f})"
+
+
+def _radar_color_for(rec: VideoRecord, idx_in_cat: int) -> str:
+    if rec.category == "new":
+        return _NEW_PALETTE[idx_in_cat % len(_NEW_PALETTE)]
+    if rec.category == "competitor":
+        return _COMP_PALETTE[idx_in_cat % len(_COMP_PALETTE)]
+    return _TREND_PALETTE[idx_in_cat % len(_TREND_PALETTE)]
+
+
+radar_records = list(records)
+radar_records.sort(key=lambda r: ({"new": 0, "competitor": 1, "trend": 2}.get(r.category, 3), r.game_name))
+
+axis_labels_ko = [AXIS_KO[ax] for ax in AXES]
+axis_labels_loop = axis_labels_ko + [axis_labels_ko[0]]
+
+fig = go.Figure()
+cat_idx_counter = {"new": 0, "competitor": 0, "trend": 0}
+for rec in radar_records:
+    scores = [_final_score(rec, ax) or 0.0 for ax in AXES]
+    scores_loop = scores + [scores[0]]
+    color = _radar_color_for(rec, cat_idx_counter[rec.category])
+    cat_idx_counter[rec.category] += 1
+
+    fig.add_trace(go.Scatterpolar(
+        r=scores_loop,
+        theta=axis_labels_loop,
+        name=rec.game_name,
+        mode="lines+markers",
+        line=dict(color=color, width=2),
+        marker=dict(size=5, color=color),
+        fill="toself",
+        fillcolor=_hex_to_rgba(color, 0.15),
+        legendgroup=rec.category,
+        legendgrouptitle_text=CATEGORY_KO.get(rec.category, rec.category),
+    ))
+
+fig.update_layout(
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    font=dict(family="Pretendard, Inter, sans-serif", color="#d4d4d8", size=12),
+    polar=dict(
+        bgcolor="rgba(0,0,0,0)",
+        radialaxis=dict(
+            range=[0, 5],
+            tickvals=[1, 2, 3, 4, 5],
+            tickfont=dict(family="JetBrains Mono, monospace", size=10, color="#71717a"),
+            gridcolor="#262626",
+            linecolor="#404040",
+            tickcolor="#404040",
+            angle=90,
+            tickangle=90,
+        ),
+        angularaxis=dict(
+            tickfont=dict(family="Pretendard, Inter, sans-serif", size=12, color="#d4d4d8"),
+            gridcolor="#262626",
+            linecolor="#262626",
+        ),
+    ),
+    legend=dict(
+        font=dict(family="Pretendard, Inter, sans-serif", size=11, color="#d4d4d8"),
+        bgcolor="rgba(0,0,0,0)",
+        bordercolor="rgba(0,0,0,0)",
+        groupclick="toggleitem",
+        itemsizing="constant",
+        x=1.02, y=1.0,
+        xanchor="left", yanchor="top",
+    ),
+    margin=dict(t=20, b=10, l=20, r=20),
+    height=420,
+    showlegend=True,
+)
+
+
+# ── 동적 인사이트 계산 ────────────────────────────────────────────────────────
+def _avg(lst: list[float]) -> Optional[float]:
+    vals = [v for v in lst if isinstance(v, (int, float))]
+    return sum(vals) / len(vals) if vals else None
+
+
+def _avg_axis(records: list[VideoRecord], axis: str) -> Optional[float]:
+    return _avg([_final_score(r, axis) or 0.0 for r in records if _final_score(r, axis) is not None])
+
+
+axis_avgs_all = {ax: _avg_axis(radar_records, ax) for ax in AXES}
+valid_avgs = {ax: v for ax, v in axis_avgs_all.items() if v is not None}
+worst_ax = min(valid_avgs, key=lambda k: valid_avgs[k]) if valid_avgs else None
+best_ax = max(valid_avgs, key=lambda k: valid_avgs[k]) if valid_avgs else None
+
+new_records = [r for r in radar_records if r.category == "new"]
+comp_records = [r for r in radar_records if r.category == "competitor"]
+
+
+def _gap_axis(new_rs: list[VideoRecord], comp_rs: list[VideoRecord]) -> Optional[tuple[str, float]]:
+    """자사 vs 경쟁사 평균 점수 차이가 가장 큰 축 (절댓값)."""
+    if not new_rs or not comp_rs:
+        return None
+    best: Optional[tuple[str, float]] = None
+    for ax in AXES:
+        an = _avg_axis(new_rs, ax)
+        ac = _avg_axis(comp_rs, ax)
+        if an is None or ac is None:
+            continue
+        diff = an - ac
+        if best is None or abs(diff) > abs(best[1]):
+            best = (ax, diff)
+    return best
+
+
+gap = _gap_axis(new_records, comp_records)
+
+
+def _category_summary() -> str:
+    parts: list[str] = []
+    if new_records:
+        parts.append(f"자사 {len(new_records)}편")
+    if comp_records:
+        parts.append(f"경쟁사 {len(comp_records)}편")
+    return " vs ".join(parts) if parts else f"전체 {len(radar_records)}편"
+
+
+insight_lines: list[str] = []
+if worst_ax and valid_avgs[worst_ax] is not None:
+    insight_lines.append(
+        f'<li>전체 <strong style="color:#fff;">{AXIS_KO[worst_ax]}</strong> 축 평균 '
+        f'<span class="cl-num" style="color:#fff;">{valid_avgs[worst_ax]:.2f}</span>점 — '
+        f'5편 공통 약점</li>'
+    )
+if best_ax and valid_avgs[best_ax] is not None:
+    insight_lines.append(
+        f'<li>전체 <strong style="color:#fff;">{AXIS_KO[best_ax]}</strong> 축 평균 '
+        f'<span class="cl-num" style="color:#fff;">{valid_avgs[best_ax]:.2f}</span>점 — 가장 강한 축</li>'
+    )
+if gap is not None:
+    ax_g, diff_g = gap
+    direction = "강함" if diff_g > 0 else "약함"
+    insight_lines.append(
+        f'<li>자사가 <strong style="color:#fff;">{AXIS_KO[ax_g]}</strong> 축에서 '
+        f'경쟁사 대비 <span class="cl-num" style="color:#fff;">{diff_g:+.2f}</span>점 {direction}</li>'
+    )
+insight_html = "<ul style='margin: 8px 0 0 0; padding-left: 18px; line-height:1.8; font-size:13px; color:#a1a1aa;'>" + "".join(insight_lines) + "</ul>"
+
+# ── 차트 카드 렌더 ───────────────────────────────────────────────────────────
+st.markdown(
+    f"""
+    <div class="cl-card" style="margin-bottom:24px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+        <div style="display:flex; align-items:center;">
+          <span style="font-size:13px; font-weight:500; color:#fff;">5편 6축 비교</span>
+          {tip_html("5편 6축 비교", "분석된 5편의 final 점수를 6각형 레이더로 겹쳐 비교합니다. 자사 신규는 라벤더, 경쟁사는 민트 계열로 구분돼요. legend를 클릭해 영상별로 켜고 끌 수 있어요.")}
+        </div>
+        <span style="font-size:11px; color:#71717a;">5점 만점 · {_category_summary()}</span>
+      </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+radar_left, radar_right = st.columns([3, 2])
+with radar_left:
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+with radar_right:
+    st.markdown(
+        f"""
+        <div style="padding: 24px 0 0 8px;">
+          <div style="font-size:11px; color:#71717a; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">핵심 인사이트</div>
+          {insight_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 # ─── 필터 (분류/등급/장르) + 정렬 ────────────────────────────────────────────
 genres_present = sorted({r.genre for r in records if r.genre})
 filter_cols = st.columns([1, 1, 1, 5])

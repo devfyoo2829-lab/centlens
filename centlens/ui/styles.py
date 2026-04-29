@@ -432,6 +432,12 @@ a:hover { text-decoration: underline; }
   padding: 16px; transition: border-color 0.15s;
 }
 .cl-archive-card:hover { border-color: #404040; }
+.cl-archive-card-deleted {
+  opacity: 0.55;
+  background: #050505;
+}
+.cl-archive-card-deleted:hover { opacity: 0.85; border-color: #404040; }
+.cl-archive-card-deleted .cl-archive-thumb-img { filter: grayscale(85%); }
 .cl-archive-card-head {
   display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
 }
@@ -489,6 +495,116 @@ a:hover { text-decoration: underline; }
   display: flex; align-items: center; justify-content: center;
   width: 100%; height: 100%;
   color: #71717a; font-size: 11px;
+}
+
+/* ── 검색 결과 컴팩트 카드 (.cl-search-result-card) ────────────────────────── */
+.cl-search-result-card {
+  position: relative;
+  background: #0a0a0a;
+  border: 0.5px solid #262626;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  transition: border-color 0.15s;
+}
+.cl-search-result-card:hover { border-color: #404040; }
+.cl-search-result-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.cl-search-result-title {
+  font-size: 13px; font-weight: 500; color: #fff;
+}
+.cl-search-result-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 8px; font-size: 11px; color: #71717a;
+}
+
+/* ── 페이지 1 소개 카드 (.cl-intro-card) ──────────────────────────────────── */
+.cl-intro-card {
+  background: rgba(167, 139, 250, 0.04);
+  border: 0.5px solid rgba(167, 139, 250, 0.2);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+}
+.cl-intro-card h3 {
+  color: #a78bfa;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+.cl-intro-card p {
+  color: #d4d4d8;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 4px 0;
+}
+.cl-intro-card p strong { color: #ffffff; font-weight: 500; }
+.cl-intro-card p.cl-intro-hint {
+  font-size: 11px;
+  color: #71717a;
+  margin-top: 8px;
+}
+.cl-intro-card p.cl-intro-hint strong { color: #a1a1aa; font-weight: 500; }
+
+/* ── 페이지 2 빈 상태 (.cl-empty-state) ───────────────────────────────────── */
+.cl-empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  background: #0a0a0a;
+  border: 0.5px solid #262626;
+  border-radius: 12px;
+  margin: 32px 0 16px;
+}
+.cl-empty-state h3 {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+.cl-empty-state p {
+  color: #a1a1aa;
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ── 같은 영상 경고 카드 (페이지 1) ───────────────────────────────────────── */
+.cl-similarity-warning {
+  background: rgba(245, 165, 36, 0.04);
+  border: 0.5px solid rgba(245, 165, 36, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.cl-similarity-warning .cl-sim-title {
+  color: #f5a524;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+.cl-similarity-warning .cl-sim-meta {
+  color: #d4d4d8;
+  font-size: 12px;
+  margin: 4px 0;
+  line-height: 1.6;
+}
+.cl-similarity-warning .cl-sim-meta strong { color: #ffffff; font-weight: 500; }
+
+/* ── 카드 삭제 버튼 (페이지 3) ────────────────────────────────────────────── */
+/* Streamlit st.button을 카드 우상단처럼 보이게 — 삭제 키 패턴(`delete_*`)에 매칭 */
+.stButton > button[kind="secondary"][data-testid*="delete"],
+button[data-testid*="delete_"] {
+  color: #71717a !important;
+  background: transparent !important;
+  border: 0.5px solid #404040 !important;
+}
+.stButton > button[kind="secondary"][data-testid*="delete"]:hover,
+button[data-testid*="delete_"]:hover {
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+  border-color: #ef4444 !important;
 }
 
 /* ── 영상 / 프레임 fallback placeholder ─────────────────────────────────── */

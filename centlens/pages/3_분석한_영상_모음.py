@@ -11,7 +11,13 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
-from centlens.core.repository import VideoRecord, get_repository  # noqa: E402
+import time  # noqa: E402
+
+from centlens.core.repository import (  # noqa: E402
+    JsonRepository,
+    VideoRecord,
+    get_repository,
+)
 from centlens.ui.styles import (  # noqa: E402
     AXES,
     AXIS_GROUP_COLOR,
@@ -35,7 +41,23 @@ render_header(active="archive")
 
 # ─── 데이터 로딩 ──────────────────────────────────────────────────────────────
 repo = get_repository()
-records: list[VideoRecord] = repo.list_videos()
+
+# 페이지 진입 시 시드 자동 복원 (.deleted_seeds 등재된 slug는 제외)
+if isinstance(repo, JsonRepository):
+    try:
+        _restored = repo.restore_missing_seeds()
+        if _restored:
+            st.toast(f"시드 영상 {len(_restored)}편 복원됨", icon="🌱")
+    except Exception:
+        pass  # 복원 실패해도 페이지 렌더는 계속
+
+show_deleted = st.session_state.get("show_deleted", False)
+records: list[VideoRecord] = repo.list_videos(include_deleted=False)
+deleted_records: list[VideoRecord] = []
+if show_deleted:
+    deleted_records = [
+        r for r in repo.list_videos(include_deleted=True) if r.deleted_at is not None
+    ]
 
 
 def _final_score(rec: VideoRecord, axis: str) -> Optional[float]:
@@ -72,15 +94,280 @@ if by_cat["competitor"]:
 if by_cat["trend"]:
     sub_parts.append(f"시장 트렌드 {by_cat['trend']}편")
 
+title_cols = st.columns([6, 1])
+with title_cols[0]:
+    st.markdown(
+        f"""
+        <div style="margin-bottom: 24px;">
+          <h1>분석한 영상 모음</h1>
+          <p style="font-size:14px; color:#a1a1aa; margin:0;">{' · '.join(sub_parts)}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+with title_cols[1]:
+    st.markdown('<div style="height:18px;"></div>', unsafe_allow_html=True)
+    if st.button("시드 복원", key="restore_seeds_btn", help="삭제 기록을 비우고 시드 5편을 모두 복원"):
+        if isinstance(repo, JsonRepository):
+            repo.clear_deleted_seeds_log()
+            restored = repo.restore_missing_seeds()
+            st.toast(f"시드 {len(restored)}편 복원" if restored else "복원할 시드 없음", icon="🌱")
+            time.sleep(0.5)
+            st.rerun()
+
+# 삭제된 영상 보기 토글
+n_deleted_total = sum(
+    1 for r in repo.list_videos(include_deleted=True) if r.deleted_at is not None
+)
+toggle_label = (
+    f"삭제된 영상 보기 ({n_deleted_total}편)" if n_deleted_total else "삭제된 영상 보기"
+)
+new_toggle = st.toggle(
+    toggle_label,
+    value=show_deleted,
+    key="show_deleted_toggle",
+    help="휴지통에 있는 영상도 함께 표시합니다. 삭제된 카드는 회색 톤 + '복원' 버튼.",
+)
+if new_toggle != show_deleted:
+    st.session_state["show_deleted"] = new_toggle
+    st.rerun()
+
+# 더미 markdown — 위 columns가 끝나면 다음 섹션이 자연스럽게 이어지도록.
+st.markdown(
+    """
+    <div style="display:none;"></div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 의미 검색 (페이지 상단) — 검색 활성 시 통계+6축+필터+그리드 모두 차단
+# ═══════════════════════════════════════════════════════════════════════════════
+@st.cache_data(show_spinner=False, ttl=600)
+def _embed_query(text: str) -> Optional[list[float]]:
+    """검색어를 OpenAI text-embedding-3-small 로 임베딩. 실패 시 None."""
+    if not text.strip():
+        return None
+    try:
+        from openai import OpenAI
+        client = OpenAI()
+        resp = client.embeddings.create(model="text-embedding-3-small", input=text)
+        return list(resp.data[0].embedding)
+    except Exception:
+        return None
+
+
+def _mock_search_sort(records: list[VideoRecord], query: str) -> list[VideoRecord]:
+    """API 키 없을 때 fallback — 키워드 매칭 기반 정렬."""
+    q = (query or "").lower()
+    if any(k in q for k in ("사운드", "음향", "소리", "sound")):
+        return sorted(records, key=lambda r: (
+            0 if r.weakest_axis == "sound" else 1,
+            _final_score(r, "sound") if _final_score(r, "sound") is not None else 99,
+        ))
+    if any(k in q for k in ("성장", "캐릭터", "growth")):
+        return sorted(records, key=lambda r: (
+            0 if r.weakest_axis == "growth" else 1,
+            _final_score(r, "growth") if _final_score(r, "growth") is not None else 99,
+        ))
+    if any(k in q for k in ("확장", "공간", "expansion")):
+        return sorted(records, key=lambda r:
+                      _final_score(r, "expansion") if _final_score(r, "expansion") is not None else 99)
+    if any(k in q for k in ("움직임", "쏟아", "튕", "movement")):
+        return sorted(records, key=lambda r: -(_final_score(r, "movement") or 0))
+    return sorted(records, key=lambda r: -(r.total_score if isinstance(r.total_score, (int, float)) else 0))
+
+
+def _semantic_search(
+    records: list[VideoRecord],
+    query: str,
+    top_k: int = 5,
+) -> tuple[list[VideoRecord], dict[str, float]]:
+    """실제 임베딩 검색. 실패 시 mock 정렬 fallback (sims dict 비어있음)."""
+    if not query.strip():
+        return _mock_search_sort(records, query), {}
+    query_emb = _embed_query(query)
+    if query_emb is None:
+        return _mock_search_sort(records, query)[:top_k], {}
+
+    all_results = repo.search_by_vector(query_emb, top_k=max(top_k, len(records)))
+    filtered_slugs = {r.slug for r in records}
+    out: list[VideoRecord] = []
+    sims: dict[str, float] = {}
+    for rec, sim in all_results:
+        if rec.slug in filtered_slugs:
+            out.append(rec)
+            sims[rec.slug] = sim
+        if len(out) >= top_k:
+            break
+    return out, sims
+
+
+def _render_search_result_card(rec: VideoRecord, sim: Optional[float]) -> None:
+    """컴팩트 검색 결과 카드 — 썸네일 X, 미니 바 + 점수 + 상세 보기 버튼."""
+    final_scores = _final_scores_dict(rec)
+    cat_badge = category_badge_html(rec.category)
+    grade_badge = grade_badge_html(rec.grade)
+    sim_html = (
+        f'<span class="cl-badge" style="background:rgba(167,139,250,0.12);'
+        f' color:#a78bfa; border-color:rgba(167,139,250,0.3);">'
+        f'유사도 {sim:.3f}</span>' if sim is not None else ""
+    )
+    total_str = f"{rec.total_score:.2f}" if isinstance(rec.total_score, (int, float)) else "—"
+    weakest_str = AXIS_KO.get(rec.weakest_axis or "", "—")
+    publisher = rec.publisher or "—"
+
+    st.markdown(
+        f'<div class="cl-search-result-card">'
+        f'<div class="cl-search-result-head">'
+        f'<div style="display:flex; align-items:center; gap:8px;">'
+        f'{cat_badge}'
+        f'<span class="cl-search-result-title">{rec.game_name}</span>'
+        f'</div>'
+        f'<div style="display:flex; align-items:center; gap:6px;">'
+        f'{sim_html}{grade_badge}'
+        f'</div></div>'
+        f'<div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">'
+        f'<span style="font-size:11px; color:#71717a;">총점</span>'
+        f'<span class="cl-num" style="font-size:13px; color:#fff;">{total_str}</span>'
+        f'<span style="flex:1;"></span>'
+        f'</div>'
+        f'{mini_chart_html(final_scores)}'
+        f'<div class="cl-search-result-meta">'
+        f'<span>가장 약한 축: {weakest_str}</span>'
+        f'<span>{rec.genre} · {publisher}</span>'
+        f'</div></div>',
+        unsafe_allow_html=True,
+    )
+    if st.button("상세 보기", key=f"search_open_{rec.slug}", use_container_width=True):
+        st.session_state["nav_slug"] = rec.slug
+        st.query_params["slug"] = rec.slug
+        st.switch_page("pages/2_영상_상세.py")
+
+
+# ── 의미 검색 input + 칩 ──────────────────────────────────────────────────────
 st.markdown(
     f"""
-    <div style="margin-bottom: 24px;">
-      <h1>분석한 영상 모음</h1>
-      <p style="font-size:14px; color:#a1a1aa; margin:0;">{' · '.join(sub_parts)}</p>
+    <div class="cl-card">
+      <div style="display:flex; align-items:center; margin-bottom:4px;">
+        <span style="font-size:13px; font-weight:500; color:#fff;">의미로 영상 찾기</span>
+        {tip_html("의미로 영상 찾기", "키워드가 아닌 의미로 검색해요. 영상의 평가 내용을 AI가 이해해서, 입력하신 표현과 가장 가까운 영상을 찾아줍니다.")}
+      </div>
+      <p style="font-size:11px; color:#71717a; margin:0 0 12px;">
+        자연스러운 표현으로 검색해보세요. AI가 의미를 이해해서 가장 가까운 영상을 찾아줍니다.
+      </p>
     </div>
     """,
     unsafe_allow_html=True,
 )
+
+if "search_query" not in st.session_state:
+    st.session_state["search_query"] = ""
+if "_search_input" not in st.session_state:
+    st.session_state["_search_input"] = st.session_state["search_query"]
+
+
+def _commit_search() -> None:
+    st.session_state["search_query"] = st.session_state.get("_search_input", "")
+
+
+def _set_search_query(q: str) -> None:
+    st.session_state["search_query"] = q
+    st.session_state["_search_input"] = q
+
+
+example_queries = (
+    "사운드가 약했던 경쟁사 영상",
+    "움직임이 강한 자사 영상",
+    "캐릭터 변화가 있는 영상",
+)
+search_cols = st.columns([5, 1])
+with search_cols[0]:
+    st.text_input(
+        "search_query",
+        placeholder="확장 축이 강한 시뮬레이션 게임 영상",
+        label_visibility="collapsed",
+        key="_search_input",
+        on_change=_commit_search,
+    )
+with search_cols[1]:
+    st.button(
+        "찾기", type="primary", use_container_width=True,
+        key="search_btn", on_click=_commit_search,
+    )
+
+chip_cols = st.columns([1, 2, 2, 2, 5])
+chip_cols[0].markdown(
+    '<div style="font-size:11px; color:#71717a; padding-top:6px;">예시:</div>',
+    unsafe_allow_html=True,
+)
+for i, q in enumerate(example_queries):
+    chip_cols[i + 1].button(
+        q, key=f"chip_{i}", use_container_width=True,
+        on_click=_set_search_query, args=(q,),
+    )
+
+active_query = (st.session_state.get("search_query") or "").strip()
+
+
+# ── 검색 활성 시 — 결과 섹션 + st.stop() (이후 통계/6축/필터/그리드 차단) ──
+def _clear_search() -> None:
+    """검색어 + 입력 임시 키 둘 다 비움 → 전체 화면 (통계+6축+그리드) 복귀."""
+    st.session_state["search_query"] = ""
+    st.session_state["_search_input"] = ""
+
+
+if active_query:
+    sorted_results, _result_sims = _semantic_search(records, active_query, top_k=5)
+    api_used = bool(_result_sims)
+    badge_text = "임베딩 매칭" if api_used else "키워드 fallback (API 없음)"
+    top_sim_val = max(_result_sims.values()) if _result_sims else None
+    sim_part = f" · top sim {top_sim_val:.3f}" if top_sim_val is not None else ""
+
+    # 검색 결과 헤더 + 상단 [전체 보기] 버튼
+    head_cols = st.columns([5, 2])
+    with head_cols[0]:
+        st.markdown(
+            f'<div style="font-size:13px; font-weight:500; color:#fff; margin: 16px 0 4px;">'
+            f'검색 결과 <span style="color:#71717a; font-weight:400; font-size:11px;">'
+            f'· “{active_query}” · {len(sorted_results)}편 ({badge_text}{sim_part})</span></div>',
+            unsafe_allow_html=True,
+        )
+    with head_cols[1]:
+        st.button(
+            "← 전체 영상 보기",
+            key="search_clear_btn_top",
+            on_click=_clear_search,
+            use_container_width=True,
+            help="검색을 종료하고 통계+6축 그래프+전체 카드 그리드로 돌아갑니다",
+        )
+
+    if not sorted_results:
+        st.markdown(
+            '<div class="cl-empty-state" style="padding:32px 16px;">'
+            '<h3>검색 결과가 없습니다</h3>'
+            '<p>다른 표현으로 검색해보거나, 위의 <strong>← 전체 영상 보기</strong>를 눌러 전체 영상을 보세요.</p>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        for rec in sorted_results:
+            _render_search_result_card(rec, _result_sims.get(rec.slug))
+
+        # 결과 카드 아래에도 동일 [전체 보기] 버튼 — 긴 결과 스크롤 후 쉽게 복귀
+        st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
+        bottom_cols = st.columns([2, 3, 2])
+        with bottom_cols[1]:
+            st.button(
+                "← 전체 영상 보기",
+                key="search_clear_btn_bottom",
+                on_click=_clear_search,
+                use_container_width=True,
+                help="검색을 종료하고 통계+6축 그래프+전체 카드 그리드로 돌아갑니다",
+            )
+
+    st.stop()
 
 
 # ─── 통계 4카드 ───────────────────────────────────────────────────────────────
@@ -168,60 +455,6 @@ st.markdown(
     f'<div class="cl-stat-grid">{"".join(stat_cards)}</div>',
     unsafe_allow_html=True,
 )
-
-
-# ─── 의미 검색 (mock) ─────────────────────────────────────────────────────────
-st.markdown(
-    f"""
-    <div class="cl-card">
-      <div style="display:flex; align-items:center; margin-bottom:4px;">
-        <span style="font-size:13px; font-weight:500; color:#fff;">의미로 영상 찾기</span>
-        {tip_html("의미로 영상 찾기", "키워드가 아닌 의미로 검색해요. 영상의 평가 내용을 AI가 이해해서, 입력하신 표현과 가장 가까운 영상을 찾아줍니다.")}
-      </div>
-      <p style="font-size:11px; color:#71717a; margin:0 0 12px;">
-        자연스러운 표현으로 검색해보세요. AI가 의미를 이해해서 가장 가까운 영상을 찾아줍니다.
-      </p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-if "search_query" not in st.session_state:
-    st.session_state.search_query = ""
-
-# 예시 칩 — 클릭 시 search_query 세팅
-example_queries = (
-    "사운드가 약했던 경쟁사 영상",
-    "움직임이 강한 자사 영상",
-    "캐릭터 변화가 있는 영상",
-)
-search_cols = st.columns([5, 1])
-with search_cols[0]:
-    query_input = st.text_input(
-        "search_query_input",
-        value=st.session_state.search_query,
-        placeholder="확장 축이 강한 시뮬레이션 게임 영상",
-        label_visibility="collapsed",
-        key="search_query_textbox",
-    )
-with search_cols[1]:
-    search_clicked = st.button("찾기", type="primary", use_container_width=True, key="search_btn")
-
-# 칩 row
-chip_cols = st.columns([1, 2, 2, 2, 5])
-chip_cols[0].markdown(
-    '<div style="font-size:11px; color:#71717a; padding-top:6px;">예시:</div>',
-    unsafe_allow_html=True,
-)
-for i, q in enumerate(example_queries):
-    if chip_cols[i + 1].button(q, key=f"chip_{i}", use_container_width=True):
-        st.session_state.search_query = q
-        st.rerun()
-
-if search_clicked:
-    st.session_state.search_query = query_input
-
-active_query = st.session_state.search_query
 
 
 # ─── 5편 6축 레이더 비교 ──────────────────────────────────────────────────────
@@ -440,43 +673,7 @@ with filter_cols[2]:
     )
 
 
-# ─── 정렬 / 검색 mock 적용 ──────────────────────────────────────────────────
-def _mock_search_sort(records: list[VideoRecord], query: str) -> list[VideoRecord]:
-    q = (query or "").lower()
-    if any(k in q for k in ("사운드", "음향", "소리", "sound")):
-        # weakest_axis가 sound인 영상 우선, 그 다음 sound final 점수 오름차순
-        return sorted(
-            records,
-            key=lambda r: (
-                0 if r.weakest_axis == "sound" else 1,
-                _final_score(r, "sound") if _final_score(r, "sound") is not None else 99,
-            ),
-        )
-    if any(k in q for k in ("성장", "캐릭터", "growth")):
-        return sorted(
-            records,
-            key=lambda r: (
-                0 if r.weakest_axis == "growth" else 1,
-                _final_score(r, "growth") if _final_score(r, "growth") is not None else 99,
-            ),
-        )
-    if any(k in q for k in ("확장", "공간", "expansion")):
-        return sorted(
-            records,
-            key=lambda r: _final_score(r, "expansion") if _final_score(r, "expansion") is not None else 99,
-        )
-    if any(k in q for k in ("움직임", "쏟아", "튕", "movement")):
-        return sorted(
-            records,
-            key=lambda r: -(_final_score(r, "movement") or 0),
-        )
-    # 기본: 총점 내림차순
-    return sorted(
-        records,
-        key=lambda r: -(r.total_score if isinstance(r.total_score, (int, float)) else 0),
-    )
-
-
+# ─── 필터 적용 + 정렬 (active_query 비활성 분기 — 위에서 st.stop() 통과) ──
 def _apply_filters(records: list[VideoRecord]) -> list[VideoRecord]:
     out = records
     if sel_categories:
@@ -488,27 +685,30 @@ def _apply_filters(records: list[VideoRecord]) -> list[VideoRecord]:
     return out
 
 
-sorted_records = _mock_search_sort(_apply_filters(records), active_query)
+sorted_records = sorted(
+    _apply_filters(records),
+    key=lambda r: -(r.total_score if isinstance(r.total_score, (int, float)) else 0),
+)
 
-if active_query:
-    st.markdown(
-        f'<div style="font-size:11px; color:#71717a; margin: 8px 0 12px;">'
-        f'검색어 “{active_query}” · 결과 {len(sorted_records)}편 (의미 매칭, mock)</div>',
-        unsafe_allow_html=True,
-    )
-else:
-    st.markdown(
-        f'<div style="font-size:11px; color:#71717a; margin: 8px 0 12px;">'
-        f'정렬: 총점 내림차순 · 표시 {len(sorted_records)}편</div>',
-        unsafe_allow_html=True,
-    )
+st.markdown(
+    f'<div style="font-size:11px; color:#71717a; margin: 8px 0 12px;">'
+    f'정렬: 총점 내림차순 · 표시 {len(sorted_records)}편</div>',
+    unsafe_allow_html=True,
+)
 
 
 # ─── 카드 그리드 (2 컬럼) ────────────────────────────────────────────────────
-def _render_card(rec: VideoRecord) -> None:
+def _render_card(rec: VideoRecord, *, is_deleted: bool = False,
+                 sim: Optional[float] = None) -> None:
     final_scores = _final_scores_dict(rec)
     grade = grade_badge_html(rec.grade)
     cat_badge = category_badge_html(rec.category)
+    sim_badge = (
+        f'<span class="cl-badge" style="background:rgba(167,139,250,0.12);'
+        f' color:#a78bfa; border-color:rgba(167,139,250,0.3);">'
+        f'유사도 {sim:.3f}</span>'
+        if sim is not None else ""
+    )
 
     thumb_uri = _thumb_data_uri(rec.slug)
     if thumb_uri:
@@ -528,40 +728,172 @@ def _render_card(rec: VideoRecord) -> None:
     weakest_str = AXIS_KO.get(rec.weakest_axis or "", "—")
     publisher = rec.publisher or "—"
 
+    deleted_badge = ""
+    extra_card_class = ""
+    if is_deleted:
+        extra_card_class = " cl-archive-card-deleted"
+        ts = (rec.deleted_at or "").replace("T", " ")[:16] if rec.deleted_at else ""
+        deleted_badge = (
+            '<span class="cl-badge" style="background:rgba(113,113,122,0.18); '
+            f'color:#a1a1aa;">삭제됨 · {ts}</span>'
+        )
+
+    head_right = deleted_badge if is_deleted else grade
+    mini_tip = tip_html(
+        "6축 미니 차트",
+        "왼쪽부터 움직임·성장·확장(라벤더, 변화 3축), 카메라·컬러·사운드(민트, 연출 3축) 순이에요. 막대 길이가 점수예요.",
+    )
     st.markdown(
-        f"""
-        <div class="cl-archive-card">
-          <div class="cl-archive-card-head">
-            <div style="display:flex; align-items:center; gap:8px;">
-              {cat_badge}
-              <span style="font-size:13px; font-weight:500; color:#fff;">{rec.game_name}</span>
-            </div>
-            {grade}
-          </div>
-          {thumb_html}
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-            <span style="font-size:11px; color:#71717a;">총점</span>
-            <span class="cl-num" style="font-size:14px;">{total_str}</span>
-          </div>
-          <div style="display:flex; align-items:center; margin: 0 0 6px;">
-            <span style="font-size:10px; color:#71717a;">변화 3축 · 연출 3축 점수</span>
-            {tip_html("6축 미니 차트", "왼쪽부터 움직임·성장·확장(라벤더, 변화 3축), 카메라·컬러·사운드(민트, 연출 3축) 순이에요. 막대 길이가 점수예요.")}
-          </div>
-          {mini_chart_html(final_scores)}
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:10px;">
-            <span style="font-size:10px; color:#71717a;">가장 약한 축: {weakest_str}</span>
-            <span style="font-size:10px; color:#71717a;">{rec.genre} · {publisher}</span>
-          </div>
-        </div>
-        """,
+        f'<div class="cl-archive-card{extra_card_class}">'
+        f'<div class="cl-archive-card-head">'
+        f'<div style="display:flex; align-items:center; gap:8px;">'
+        f'{cat_badge}'
+        f'<span style="font-size:13px; font-weight:500; color:#fff;">{rec.game_name}</span>'
+        f'</div>'
+        f'<div style="display:flex; align-items:center; gap:6px;">'
+        f'{sim_badge}{head_right}'
+        f'</div></div>'
+        f'{thumb_html}'
+        f'<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">'
+        f'<span style="font-size:11px; color:#71717a;">총점</span>'
+        f'<span class="cl-num" style="font-size:14px;">{total_str}</span>'
+        f'</div>'
+        f'<div style="display:flex; align-items:center; margin: 0 0 6px;">'
+        f'<span style="font-size:10px; color:#71717a;">변화 3축 · 연출 3축 점수</span>'
+        f'{mini_tip}'
+        f'</div>'
+        f'{mini_chart_html(final_scores)}'
+        f'<div style="display:flex; align-items:center; justify-content:space-between; margin-top:10px;">'
+        f'<span style="font-size:10px; color:#71717a;">가장 약한 축: {weakest_str}</span>'
+        f'<span style="font-size:10px; color:#71717a;">{rec.genre} · {publisher}</span>'
+        f'</div></div>',
         unsafe_allow_html=True,
     )
-    if st.button("자세히 보기", key=f"open_{rec.slug}", use_container_width=True):
-        st.query_params["slug"] = rec.slug
-        st.switch_page("pages/2_영상_상세.py")
+
+    if is_deleted:
+        # 삭제된 카드 — "복원" 버튼만 (자세히 보기 / 영구 삭제 두 갈래)
+        btn_cols = st.columns([4, 3])
+        with btn_cols[0]:
+            if st.button("↩ 복원", key=f"restore_{rec.slug}", type="primary",
+                         use_container_width=True, help="휴지통 복귀 — 자산 + 카드 다시 활성화"):
+                if isinstance(repo, JsonRepository):
+                    if repo.restore_video(rec.slug):
+                        st.toast(f"{rec.game_name} 복원 완료", icon="↩️")
+                        time.sleep(0.5)
+                        st.rerun()
+        with btn_cols[1]:
+            if st.button("🗑 영구 삭제", key=f"hard_delete_{rec.slug}",
+                         use_container_width=True,
+                         help="휴지통과 cache JSON 모두 정리 (복원 불가)"):
+                st.session_state["pending_delete"] = rec.slug
+                st.session_state["pending_delete_hard_default"] = True
+    else:
+        btn_cols = st.columns([6, 1])
+        with btn_cols[0]:
+            if st.button("자세히 보기", key=f"open_{rec.slug}", use_container_width=True):
+                st.session_state["nav_slug"] = rec.slug
+                st.query_params["slug"] = rec.slug
+                st.switch_page("pages/2_영상_상세.py")
+        with btn_cols[1]:
+            if st.button("🗑", key=f"delete_{rec.slug}", use_container_width=True,
+                          help="이 영상을 휴지통으로 이동 (soft delete)"):
+                st.session_state["pending_delete"] = rec.slug
+                st.session_state["pending_delete_hard_default"] = False
+
+
+@st.dialog("영상 삭제 확인")
+def _confirm_delete_dialog(slug: str):
+    """삭제 확인 모달 — soft 기본, 영구 삭제 체크박스로 hard 전환."""
+    target = repo.get_video(slug)
+    if target is None:
+        st.error(f"slug '{slug}' 를 찾을 수 없습니다.")
+        return
+    is_seed = slug in {"burger_please_drive_thru", "pizza_ready_break", "snake_clash_morph",
+                       "twerk_race_gate", "kingshot_expansion"}
+    cat_ko = CATEGORY_KO.get(target.category, target.category)
+
+    st.markdown(
+        f"<div style='font-size:14px; color:#fff; font-weight:500; margin-bottom:8px;'>"
+        f"{target.game_name} <span style='color:#a1a1aa; font-weight:400;'>({cat_ko})</span></div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        "<div style='font-size:12px; color:#a1a1aa; margin-bottom:12px;'>"
+        "기본은 <strong style='color:#fff;'>휴지통 이동(복원 가능)</strong>입니다. "
+        "자산은 <code>data/.trash/{slug}/</code> 로 이동하고 카드는 '삭제됨' 상태로 표시됩니다.</div>",
+        unsafe_allow_html=True,
+    )
+
+    hard_default = bool(st.session_state.get("pending_delete_hard_default", False))
+    hard_delete = st.checkbox(
+        "영구 삭제 (복원 불가)",
+        value=hard_default,
+        key=f"hard_delete_check_{slug}",
+        help="체크 시 cache JSON · 임베딩 · mp4 · frames · script 모두 즉시 정리됩니다.",
+    )
+
+    if hard_delete:
+        st.markdown(
+            "<div style='font-size:11px; color:#ef4444; background:rgba(239,68,68,0.06);"
+            " border:0.5px solid rgba(239,68,68,0.2); border-radius:6px;"
+            " padding:8px 12px; margin: 8px 0 12px;'>"
+            "⚠ 영구 삭제 모드 — 휴지통과 모든 자산이 즉시 제거되며 되돌릴 수 없습니다.</div>",
+            unsafe_allow_html=True,
+        )
+        if is_seed:
+            st.markdown(
+                "<div style='font-size:11px; color:#f5a524; background:rgba(245,165,36,0.06);"
+                " border:0.5px solid rgba(245,165,36,0.2); border-radius:6px;"
+                " padding:8px 12px; margin: 0 0 12px;'>"
+                "⚠ 시드 영구 삭제 — 페이지 진입 시 자동 복원되지 않습니다 "
+                "(<strong>시드 복원</strong> 버튼으로만 복원).</div>",
+                unsafe_allow_html=True,
+            )
+
+    cancel_col, delete_col = st.columns(2)
+    if cancel_col.button("취소", key=f"cancel_delete_{slug}", use_container_width=True):
+        st.session_state.pop("pending_delete", None)
+        st.session_state.pop("pending_delete_hard_default", None)
+        st.rerun()
+    delete_label = "영구 삭제" if hard_delete else "휴지통으로 이동"
+    if delete_col.button(delete_label, key=f"confirm_delete_{slug}", type="primary",
+                          use_container_width=True):
+        ok = repo.delete_video(slug, hard=hard_delete)
+        st.session_state.pop("pending_delete", None)
+        st.session_state.pop("pending_delete_hard_default", None)
+        if ok:
+            st.toast(f"{target.game_name} 삭제 완료", icon="🗑️")
+        else:
+            st.toast(f"{target.game_name} 자산 일부 누락 (이미 삭제됨)", icon="⚠️")
+        time.sleep(0.5)
+        st.rerun()
+
+
+# ─── 삭제 다이얼로그 트리거 ──────────────────────────────────────────────────
+_pending = st.session_state.get("pending_delete")
+if _pending:
+    _confirm_delete_dialog(_pending)
 
 
 grid_cols = st.columns(2)
 for idx, rec in enumerate(sorted_records):
     with grid_cols[idx % 2]:
         _render_card(rec)
+
+
+# ─── 삭제된 영상 섹션 (토글 켜졌을 때만) ─────────────────────────────────────
+if show_deleted and deleted_records:
+    st.markdown(
+        f'<div style="margin: 32px 0 12px;">'
+        f'<h2 style="margin:0;">삭제된 영상 <span class="cl-num" style="color:#71717a; '
+        f'font-size:14px; font-weight:400;">({len(deleted_records)}편 · 휴지통)</span></h2>'
+        f'<p style="font-size:11px; color:#71717a; margin:4px 0 0;">'
+        f'카드의 <strong style="color:#a1a1aa;">↩ 복원</strong> 으로 다시 활성화, '
+        f'<strong style="color:#a1a1aa;">🗑 영구 삭제</strong> 로 휴지통까지 정리.</p>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+    deleted_cols = st.columns(2)
+    for idx, rec in enumerate(sorted(deleted_records, key=lambda r: r.deleted_at or "", reverse=True)):
+        with deleted_cols[idx % 2]:
+            _render_card(rec, is_deleted=True)

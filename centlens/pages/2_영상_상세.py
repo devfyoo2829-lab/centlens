@@ -35,17 +35,30 @@ render_header(active="detail")
 
 
 # ─── slug 검증 ────────────────────────────────────────────────────────────────
-slug = st.query_params.get("slug")
+# Streamlit 1.56 ``st.switch_page`` 는 query_params 를 새 페이지에 전달하지 않을 수 있어
+# session_state(``nav_slug``)을 fallback 채널로 사용한다. 둘 다 비어있을 때만 fallback 화면.
+slug = st.query_params.get("slug") or st.session_state.get("nav_slug")
+if slug and not st.query_params.get("slug"):
+    # session_state로 들어온 경우 query_params 도 동기화 (URL 공유 가능하게)
+    st.query_params["slug"] = slug
 if not slug:
     st.markdown(
-        f"""
-        <div class="cl-fallback" style="margin-top:24px;">
-          영상이 선택되지 않았습니다.<br>
-          <a href="/분석한_영상_모음" target="_self" style="color:#0070f3;">← 분석한 영상 모음으로 돌아가기</a>
+        """
+        <div class="cl-empty-state">
+          <h3>영상이 선택되지 않았습니다</h3>
+          <p>새 영상 분석을 시작하거나, 분석한 영상 모음에서 자세히 보기를 클릭하면<br>
+          6축 평가 결과를 확인할 수 있습니다.</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
+    empty_cols = st.columns(2)
+    if empty_cols[0].button("새 영상 분석", type="primary", use_container_width=True,
+                             key="empty_to_upload"):
+        st.switch_page("pages/1_새_영상_분석.py")
+    if empty_cols[1].button("분석한 영상 모음", use_container_width=True,
+                             key="empty_to_archive"):
+        st.switch_page("pages/3_분석한_영상_모음.py")
     st.stop()
 
 repo = get_repository()
@@ -55,7 +68,7 @@ if rec is None:
         f"""
         <div class="cl-fallback" style="margin-top:24px;">
           slug “{slug}” 에 해당하는 영상을 찾을 수 없습니다.<br>
-          <a href="/분석한_영상_모음" target="_self" style="color:#0070f3;">← 분석한 영상 모음으로 돌아가기</a>
+          <a href="/분석한_영상_모음" target="_self" style="color:#0070f3;">분석한 영상 모음 →</a>
         </div>
         """,
         unsafe_allow_html=True,
@@ -98,7 +111,7 @@ for ax in AXES:
 st.markdown(
     '<div style="margin-bottom:8px;">'
     '<a href="/분석한_영상_모음" target="_self" style="font-size:12px; color:#a1a1aa; font-weight:500;">'
-    "← 분석한 영상 모음</a>"
+    "분석한 영상 모음 →</a>"
     "</div>",
     unsafe_allow_html=True,
 )

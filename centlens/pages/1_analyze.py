@@ -284,7 +284,8 @@ def _render_pending_match() -> None:
     with sim_cols[1]:
         if st.button("강제 재분석", key=f"sim_force_{target_slug}",
                      use_container_width=True):
-            st.session_state["force_reanalyze"] = target_slug
+            # sentinel True — 다음 분석 1회만 검증 우회. slug 비교 안 함.
+            st.session_state["force_reanalyze"] = True
             st.session_state.pop("pending_match", None)
             st.rerun()
     st.stop()
@@ -749,13 +750,15 @@ if start_clicked:
         "publisher": (sel_existing.publisher if sel_existing else None),
     }
 
-    # ── 같은 영상 검증 — 모든 옵션 (A/B/C) 에 매칭 카드 노출 후 분석 진행 차단 ─
-    # 옵션 C: 시드 영상 직접 선택이므로 즉시 자기 자신과 매칭 (sim=1.0)
-    # 옵션 A/B: 1) mp4 SHA-256 정확 매칭, 2) 메타 텍스트 임베딩 코사인 유사도
-    # force_reanalyze 는 1회용 플래그 — 검증 시점에 즉시 pop 해서 무한 루프 방지.
-    skip_check = st.session_state.get("force_reanalyze") == slug
-    if skip_check:
-        st.session_state.pop("force_reanalyze", None)
+    # ── 같은 영상 검증 — 동일 영상 판단은 SHA-256 해시로만 ────────────────
+    # 옵션 C: 시드 영상 직접 선택이므로 즉시 자기 자신과 매칭
+    # 옵션 A/B: mp4 SHA-256 정확 매칭만 사용 (게임명/메타 텍스트 임베딩은 false
+    # positive 위험이 커 제거 — 같은 게임의 다른 광고 영상도 매칭으로 잡혔던 버그).
+    #
+    # force_reanalyze 는 1회용 sentinel — slug 비교 X, 존재 여부만 보고 즉시 pop.
+    # ``_make_slug`` 가 timestamp 를 포함해 매 호출마다 slug 가 달라지므로 slug 기반
+    # 비교는 강제 재분석 직후 새 slug 와 mismatch 되어 우회 실패하던 버그를 수정.
+    skip_check = bool(st.session_state.pop("force_reanalyze", False))
 
     matched_rec: Optional[VideoRecord] = None
     match_sim: float = 0.0
@@ -768,7 +771,7 @@ if start_clicked:
             match_sim = 1.0
             match_reason = "시드 영상 직접 선택"
         else:
-            # 옵션 A/B — 해시 + 임베딩
+            # 옵션 A/B — SHA-256 해시 매칭만
             try:
                 file_hash = sha256_file(video_path)
             except Exception as e:
@@ -780,24 +783,7 @@ if start_clicked:
                 if hit is not None:
                     matched_rec = hit
                     match_sim = 1.0
-                    match_reason = "동일 파일 (SHA-256)"
-
-            if matched_rec is None:
-                try:
-                    from openai import OpenAI
-                    cat_ko = CATEGORY_KO.get(metadata["category"], metadata["category"])
-                    query_text = f"{metadata['game_name']} | {metadata['genre']} | {cat_ko}"
-                    client = OpenAI()
-                    resp = client.embeddings.create(
-                        model="text-embedding-3-small", input=query_text,
-                    )
-                    query_emb = list(resp.data[0].embedding)
-                    hit2 = repo.find_similar_video(query_emb, threshold=0.95)
-                    if hit2 is not None:
-                        matched_rec, match_sim = hit2
-                        match_reason = "메타 텍스트 임베딩 유사"
-                except Exception as e:
-                    status_placeholder.warning(f"임베딩 검증 실패 (계속 진행): {e}")
+                    match_reason = "동일 파일 (SHA-256 해시 일치)"
 
         if matched_rec is not None:
             # 매칭 결과를 session_state 에 보존 — 다음 rerun 에서 _render_pending_match() 가

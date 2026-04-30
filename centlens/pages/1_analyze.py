@@ -462,7 +462,51 @@ def _extract_frames_to_disk(video_path: Path, slug: str) -> None:
         )
 
 
+# ─── 시드 영상 매칭 (yt-dlp 우회) ────────────────────────────────────────────
+# 슈퍼센트 공식 광고 5편의 원본 URL → 로컬 mp4 slug 매핑.
+# 사용자가 옵션 B(YouTube URL)로 시드 영상 URL을 입력하면 yt-dlp 다운로드 대신
+# 이미 ``data/videos/`` 에 있는 시드 mp4를 그대로 재사용 (네트워크 의존성 제거).
+SEED_URL_MAP: dict[str, str] = {
+    # YouTube video_id (?v=...)
+    "z6uoNzTQqsI": "burger_please_drive_thru",
+    "2sXUK_X97jc": "pizza_ready_break",
+    "CA0Iw_q-r_g": "snake_clash_morph",
+    "FZ5HF8erSXI": "twerk_race_gate",
+    # Facebook video id (/videos/...)
+    "1944219636114772": "kingshot_expansion",
+}
+
+
+def _match_seed_video(url: str) -> Optional[str]:
+    """URL 에서 video_id 를 추출해 ``SEED_URL_MAP`` 매칭. 매칭되면 시드 slug, 없으면 None.
+
+    매칭 시도 순서:
+        1) ``SEED_URL_MAP`` 의 모든 ID 가 URL 문자열에 포함되는지 (가장 robust)
+        2) ``v=`` 쿼리 파라미터로 추출한 YouTube ID
+    """
+    if not url:
+        return None
+    for vid_id, seed_slug in SEED_URL_MAP.items():
+        if vid_id in url:
+            return seed_slug
+    return None
+
+
 def _download_youtube(url: str, slug: str, status_box: Any) -> Path:
+    # ── 시드 매칭 (yt-dlp 우회) — 시드 영상 URL 이면 로컬 파일 그대로 사용 ──
+    seed_slug = _match_seed_video(url)
+    if seed_slug is not None:
+        local_path = _PROJECT_ROOT / "data" / "videos" / f"{seed_slug}.mp4"
+        if local_path.is_file():
+            status_box.info(
+                f"시드 영상 매칭 — 로컬 파일 사용 ({seed_slug}.mp4, yt-dlp 우회)"
+            )
+            return local_path
+        # 시드인데 파일이 없으면 경고 후 yt-dlp 시도
+        status_box.warning(
+            f"시드 매칭됐지만 로컬 파일 없음: {local_path}. yt-dlp 다운로드로 폴백합니다."
+        )
+
     target = _PROJECT_ROOT / "data" / "videos" / f"{slug}.mp4"
     target.parent.mkdir(parents=True, exist_ok=True)
     status_box.info("YouTube 영상 다운로드 중… (보통 10~30초)")

@@ -1,7 +1,7 @@
 """CentLens Streamlit 진입점.
 
-진입 시 페이지 3(분석한 영상 모음)으로 자동 라우팅한다 — 시연 첫 화면이 카드 그리드여야
-"5편 자산을 한눈에 보고 의미 검색으로 들어가는" 플로우가 자연스럽다.
+진입 시 페이지 1(새 영상 분석)으로 자동 라우팅한다 — 첫 화면을 분석 입력 폼으로 두어
+"광고 집행 전 사전 점검 도구" 정체성이 즉시 드러나도록 한다.
 
 LangSmith trace 활성화를 위해 LangGraph import보다 먼저 ``load_dotenv()`` 호출.
 """
@@ -23,5 +23,5 @@ from centlens.ui.styles import configure_page  # noqa: E402
 
 configure_page(page_title="CentLens")
 
-# 진입 시 페이지 3으로 보낸다.
-st.switch_page("pages/3_분석한_영상_모음.py")
+# 진입 시 페이지 1로 보낸다.
+st.switch_page("pages/1_analyze.py")

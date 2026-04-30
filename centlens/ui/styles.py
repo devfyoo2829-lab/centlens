@@ -1,6 +1,6 @@
 """CentLens 공통 디자인 토큰 · CSS · UI 헬퍼.
 
-3개 페이지(`pages/1_새_영상_분석.py`, `pages/2_영상_상세.py`, `pages/3_분석한_영상_모음.py`)와
+3개 페이지(`pages/1_analyze.py`, `pages/2_detail.py`, `pages/3_archive.py`)와
 메인 진입점 `app.py`가 공유하는 시각 토큰과 컴포넌트 헬퍼를 한 곳에 모은다.
 
 설계 원칙:
@@ -102,9 +102,9 @@ AXIS_GROUP_COLOR: dict[str, str] = {
 # ─── 페이지 식별자 → 파일 경로 매핑 ──────────────────────────────────────────
 # 헤더 탭 라우팅에 쓰인다. 한국어 파일명을 그대로 사용한다.
 PAGE_PATHS: dict[str, str] = {
-    "upload":  "pages/1_새_영상_분석.py",
-    "detail":  "pages/2_영상_상세.py",
-    "archive": "pages/3_분석한_영상_모음.py",
+    "upload":  "pages/1_analyze.py",
+    "detail":  "pages/2_detail.py",
+    "archive": "pages/3_archive.py",
 }
 PAGE_LABELS: dict[str, str] = {
     "upload":  "새 영상 분석",

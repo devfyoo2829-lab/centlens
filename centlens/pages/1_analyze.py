@@ -280,7 +280,7 @@ def _render_pending_match() -> None:
             st.session_state["nav_slug"] = matched_slug
             st.query_params["slug"] = matched_slug
             st.session_state.pop("pending_match", None)
-            st.switch_page("pages/2_영상_상세.py")
+            st.switch_page("pages/2_detail.py")
     with sim_cols[1]:
         if st.button("강제 재분석", key=f"sim_force_{target_slug}",
                      use_container_width=True):
@@ -720,7 +720,7 @@ if start_clicked:
     st.session_state["nav_slug"] = slug
     st.query_params["slug"] = slug
     time.sleep(2)
-    st.switch_page("pages/2_영상_상세.py")
+    st.switch_page("pages/2_detail.py")
 else:
     # 클릭 전: 빈 상태 진행 카드 1회 렌더
     _render_progress(

@@ -55,10 +55,10 @@ if not slug:
     empty_cols = st.columns(2)
     if empty_cols[0].button("새 영상 분석", type="primary", use_container_width=True,
                              key="empty_to_upload"):
-        st.switch_page("pages/1_새_영상_분석.py")
+        st.switch_page("pages/1_analyze.py")
     if empty_cols[1].button("분석한 영상 모음", use_container_width=True,
                              key="empty_to_archive"):
-        st.switch_page("pages/3_분석한_영상_모음.py")
+        st.switch_page("pages/3_archive.py")
     st.stop()
 
 repo = get_repository()
@@ -68,7 +68,7 @@ if rec is None:
         f"""
         <div class="cl-fallback" style="margin-top:24px;">
           slug “{slug}” 에 해당하는 영상을 찾을 수 없습니다.<br>
-          <a href="/분석한_영상_모음" target="_self" style="color:#0070f3;">분석한 영상 모음 →</a>
+          <a href="/archive" target="_self" style="color:#0070f3;">분석한 영상 모음 →</a>
         </div>
         """,
         unsafe_allow_html=True,
@@ -110,7 +110,7 @@ for ax in AXES:
 # ─── 뒤로가기 ─────────────────────────────────────────────────────────────────
 st.markdown(
     '<div style="margin-bottom:8px;">'
-    '<a href="/분석한_영상_모음" target="_self" style="font-size:12px; color:#a1a1aa; font-weight:500;">'
+    '<a href="/archive" target="_self" style="font-size:12px; color:#a1a1aa; font-weight:500;">'
     "분석한 영상 모음 →</a>"
     "</div>",
     unsafe_allow_html=True,

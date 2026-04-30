@@ -243,7 +243,7 @@ def _render_search_result_card(rec: VideoRecord, sim: Optional[float]) -> None:
     if st.button("상세 보기", key=f"search_open_{rec.slug}", use_container_width=True):
         st.session_state["nav_slug"] = rec.slug
         st.query_params["slug"] = rec.slug
-        st.switch_page("pages/2_영상_상세.py")
+        st.switch_page("pages/2_detail.py")
 
 
 # ── 의미 검색 input + 칩 ──────────────────────────────────────────────────────
@@ -793,7 +793,7 @@ def _render_card(rec: VideoRecord, *, is_deleted: bool = False,
             if st.button("자세히 보기", key=f"open_{rec.slug}", use_container_width=True):
                 st.session_state["nav_slug"] = rec.slug
                 st.query_params["slug"] = rec.slug
-                st.switch_page("pages/2_영상_상세.py")
+                st.switch_page("pages/2_detail.py")
         with btn_cols[1]:
             if st.button("🗑", key=f"delete_{rec.slug}", use_container_width=True,
                           help="이 영상을 휴지통으로 이동 (soft delete)"):

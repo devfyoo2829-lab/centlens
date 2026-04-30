@@ -1,0 +1,47 @@
+[
+  {
+    "slug": "burger_please_drive_thru",
+    "game_name": "Burger Please",
+    "genre": "하이퍼캐주얼",
+    "category": "new",
+    "publisher": "Supercent",
+    "youtube_url": "https://www.youtube.com/watch?v=z6uoNzTQqsI",
+    "description": "Annie 글에서 절단 움직임 + 대량 오브젝트 사례로 인용"
+  },
+  {
+    "slug": "pizza_ready_break",
+    "game_name": "Pizza Ready",
+    "genre": "하이퍼캐주얼",
+    "category": "new",
+    "publisher": "Supercent",
+    "youtube_url": "https://www.youtube.com/watch?v=2sXUK_X97jc",
+    "description": "Annie 글에서 유리병 굴리기 + 파편 사례로 인용"
+  },
+  {
+    "slug": "snake_clash_morph",
+    "game_name": "Snake Clash",
+    "genre": "하이브리드캐주얼",
+    "category": "new",
+    "publisher": "Supercent",
+    "youtube_url": "https://www.youtube.com/watch?v=CA0Iw_q-r_g",
+    "description": "Annie 글에서 시작 3초 만에 외형 변화 사례로 인용"
+  },
+  {
+    "slug": "twerk_race_gate",
+    "game_name": "Twerk Race 3D",
+    "genre": "하이퍼캐주얼",
+    "category": "competitor",
+    "publisher": "Freeplay LLC",
+    "youtube_url": "https://www.youtube.com/watch?v=FZ5HF8erSXI",
+    "description": "Annie 글에서 게이트 통과 신체 변화 사례로 인용 (외부 시장 사례)"
+  },
+  {
+    "slug": "kingshot_expansion",
+    "game_name": "Kingshot",
+    "genre": "전략",
+    "category": "competitor",
+    "publisher": "Century Games",
+    "youtube_url": "https://www.facebook.com/61560003321785/videos/1944219636114772",
+    "description": "Annie 글에서 자원 → 타워 확장 사례로 인용 (외부 시장 사례)"
+  }
+]

@@ -32,12 +32,6 @@ env/
 ENV/
 .venv/
 
-# 데이터 (영상 파일 - 용량 큼)
-data/videos/
-data/frames/
-data/scripts/
-data/metadata.json
-
 # IDE
 .vscode/
 .idea/

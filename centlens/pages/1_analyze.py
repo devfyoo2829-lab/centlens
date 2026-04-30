@@ -724,14 +724,19 @@ if start_clicked:
         with st.spinner("YouTube 영상 준비 중… (시드 영상이면 즉시, 외부 URL은 10~30초)"):
             try:
                 video_path = _download_youtube(youtube_url.strip(), slug, status_placeholder)
-            except Exception as ydl_err:
-                st.error(f"YouTube 다운로드 실패\n\n```\n{ydl_err}\n```")
+            except Exception:
+                # 기술적 에러 메시지 노출 X — 사용자 친화적 안내만 표시.
                 st.warning(
-                    "**Streamlit Cloud 환경에서는 yt-dlp 가 외부 사이트 인증·rate limit "
-                    "등으로 실패할 수 있습니다.** 다음 중 하나를 시도해주세요:\n\n"
-                    "1. 슈퍼센트 시드 영상 5편 URL 사용 — yt-dlp 우회로 즉시 작동\n"
-                    "2. 페이지 하단 **기존 영상 재분석** 옵션으로 시드 5편 직접 선택\n"
-                    "3. mp4 파일 직접 업로드"
+                    "### 🎬 YouTube 영상을 직접 가져올 수 없어요\n\n"
+                    "배포 환경 특성상 외부 YouTube 영상은 자동 다운로드가 제한됩니다.\n\n"
+                    "**아래 방법 중 하나를 사용해주세요:**\n\n"
+                    "**① 시드 영상 5편 URL 사용** (바로 분석 가능)\n"
+                    "- Burger Please: `https://www.youtube.com/watch?v=z6uoNzTQqsI`\n"
+                    "- Pizza Ready: `https://www.youtube.com/watch?v=2sXUK_X97jc`\n"
+                    "- Snake Clash: `https://www.youtube.com/watch?v=CA0Iw_q-r_g`\n"
+                    "- Twerk Race 3D: `https://www.youtube.com/watch?v=FZ5HF8erSXI`\n\n"
+                    "**② mp4 파일 직접 업로드** — 페이지 상단 '파일 업로드' 옵션 선택\n\n"
+                    "**③ 기존 분석 영상 재활용** — 페이지 하단 '기존 영상 재분석' 선택"
                 )
                 st.stop()
             try:

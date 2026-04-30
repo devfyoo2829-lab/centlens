@@ -539,6 +539,11 @@ def _match_seed_video(url: str) -> Optional[str]:
 
 
 def _download_youtube(url: str, slug: str, status_box: Any) -> Path:
+    """YouTube/Facebook URL → mp4 다운로드. 시드 매칭 시 로컬 파일 즉시 반환.
+
+    실패 시 명확한 ``RuntimeError`` 를 raise — 호출부가 ``st.error()`` 로 표시할 수 있도록
+    예외별로 사용자가 이해할 수 있는 한국어 메시지를 부여한다.
+    """
     # ── 시드 매칭 (yt-dlp 우회) — 시드 영상 URL 이면 로컬 파일 그대로 사용 ──
     seed_slug = _match_seed_video(url)
     if seed_slug is not None:
@@ -548,25 +553,42 @@ def _download_youtube(url: str, slug: str, status_box: Any) -> Path:
                 f"시드 영상 매칭 — 로컬 파일 사용 ({seed_slug}.mp4, yt-dlp 우회)"
             )
             return local_path
-        # 시드인데 파일이 없으면 경고 후 yt-dlp 시도
         status_box.warning(
             f"시드 매칭됐지만 로컬 파일 없음: {local_path}. yt-dlp 다운로드로 폴백합니다."
         )
 
     target = _PROJECT_ROOT / "data" / "videos" / f"{slug}.mp4"
     target.parent.mkdir(parents=True, exist_ok=True)
-    status_box.info("YouTube 영상 다운로드 중… (보통 10~30초)")
+
     cmd = [
         "yt-dlp",
         "-f", "best[ext=mp4][height<=720]/best[ext=mp4]/best",
         "-o", str(target),
         url,
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    except FileNotFoundError:
+        raise RuntimeError(
+            "yt-dlp 바이너리를 찾을 수 없습니다. "
+            "Streamlit Cloud 환경에서는 yt-dlp 가 정상 작동하지 않을 수 있습니다."
+        )
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(
+            "yt-dlp 다운로드가 120초 안에 끝나지 않아 중단됐습니다. "
+            "네트워크 또는 영상 크기를 확인해주세요."
+        )
+    except Exception as e:
+        raise RuntimeError(f"yt-dlp 호출 자체가 실패했습니다: {type(e).__name__}: {e}")
+
     if result.returncode != 0:
-        raise RuntimeError(f"yt-dlp 실패: {result.stderr.strip()[:200]}")
+        stderr_msg = (result.stderr or "").strip()[:400] or "(stderr 비어있음)"
+        raise RuntimeError(
+            f"yt-dlp 종료 코드 {result.returncode}. "
+            f"stderr: {stderr_msg}"
+        )
     if not target.is_file():
-        raise RuntimeError("yt-dlp가 파일을 만들지 못했습니다.")
+        raise RuntimeError("yt-dlp 가 종료됐지만 mp4 파일이 만들어지지 않았습니다.")
     return target
 
 
@@ -681,25 +703,43 @@ if start_clicked:
         status_placeholder.warning("게임명과 장르를 입력해주세요.")
         st.stop()
 
-    try:
-        if sel_existing is not None:
-            slug = sel_existing.slug
-            video_path = _PROJECT_ROOT / "data" / "videos" / f"{slug}.mp4"
-            if not video_path.is_file():
-                raise RuntimeError(f"기존 영상 파일이 없음: {video_path}")
-        elif uploaded is not None:
-            slug = _make_slug(game_name)
-            video_path = _save_uploaded_to_videos(uploaded, slug)
-            _extract_frames_to_disk(video_path, slug)
-        elif youtube_url and youtube_url.strip():
-            slug = _make_slug(game_name)
-            video_path = _download_youtube(youtube_url.strip(), slug, status_placeholder)
-            _extract_frames_to_disk(video_path, slug)
-        else:
-            status_placeholder.warning("영상을 입력하거나 기존 영상을 선택해주세요.")
+    if sel_existing is not None:
+        slug = sel_existing.slug
+        video_path = _PROJECT_ROOT / "data" / "videos" / f"{slug}.mp4"
+        if not video_path.is_file():
+            st.error(f"기존 영상 파일이 없습니다: {video_path}")
             st.stop()
-    except Exception as e:
-        status_placeholder.error(f"영상 준비 실패: {e}")
+    elif uploaded is not None:
+        slug = _make_slug(game_name)
+        with st.spinner("업로드된 영상에서 프레임 5장을 추출하는 중…"):
+            try:
+                video_path = _save_uploaded_to_videos(uploaded, slug)
+                _extract_frames_to_disk(video_path, slug)
+            except Exception as e:
+                st.error(f"업로드 영상 처리 실패: {type(e).__name__}: {e}")
+                st.stop()
+    elif youtube_url and youtube_url.strip():
+        slug = _make_slug(game_name)
+        with st.spinner("YouTube 영상 준비 중… (시드 영상이면 즉시, 외부 URL은 10~30초)"):
+            try:
+                video_path = _download_youtube(youtube_url.strip(), slug, status_placeholder)
+            except Exception as ydl_err:
+                st.error(f"YouTube 다운로드 실패\n\n```\n{ydl_err}\n```")
+                st.warning(
+                    "**Streamlit Cloud 환경에서는 yt-dlp 가 외부 사이트 인증·rate limit "
+                    "등으로 실패할 수 있습니다.** 다음 중 하나를 시도해주세요:\n\n"
+                    "1. 슈퍼센트 시드 영상 5편 URL 사용 — yt-dlp 우회로 즉시 작동\n"
+                    "2. 페이지 하단 **기존 영상 재분석** 옵션으로 시드 5편 직접 선택\n"
+                    "3. mp4 파일 직접 업로드"
+                )
+                st.stop()
+            try:
+                _extract_frames_to_disk(video_path, slug)
+            except Exception as e:
+                st.error(f"프레임 추출 실패: {type(e).__name__}: {e}")
+                st.stop()
+    else:
+        status_placeholder.warning("영상을 입력하거나 기존 영상을 선택해주세요.")
         st.stop()
 
     metadata = {

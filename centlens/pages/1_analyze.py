@@ -435,31 +435,77 @@ def _save_uploaded_to_videos(uploaded_file, slug: str) -> Path:
     return target
 
 
+_DEFAULT_DURATION_SEC_FALLBACK: float = 30.0
+
+
+def _probe_duration_safe(video_path: Path) -> float:
+    """영상 길이 측정 — ffprobe → cv2 → moviepy → 30.0초 기본값 폴백.
+
+    Streamlit Cloud 같이 ffprobe 바이너리가 없는 환경에서도 분석 흐름이 멈추지 않게 한다.
+    """
+    # 1) ffprobe subprocess
+    try:
+        probe = subprocess.run(
+            ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+             "-of", "default=noprint_wrappers=1:nokey=1", str(video_path)],
+            capture_output=True, text=True, check=True, timeout=30,
+        )
+        return float(probe.stdout.strip())
+    except Exception:
+        pass
+
+    # 2) OpenCV
+    try:
+        import cv2  # type: ignore[import-not-found]
+        cap = cv2.VideoCapture(str(video_path))
+        if cap.isOpened():
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+            cap.release()
+            if fps and fps > 0 and frame_count and frame_count > 0:
+                return float(frame_count) / float(fps)
+    except Exception:
+        pass
+
+    # 3) moviepy
+    try:
+        from moviepy.editor import VideoFileClip  # type: ignore[import-not-found]
+        with VideoFileClip(str(video_path)) as clip:
+            return float(clip.duration)
+    except Exception:
+        pass
+
+    # 4) 기본값
+    return _DEFAULT_DURATION_SEC_FALLBACK
+
+
 def _extract_frames_to_disk(video_path: Path, slug: str) -> None:
     """ffmpeg로 0%/5%/25%/50%/95% 시점 5장을 ``data/frames/{slug}/{0-4}.jpg`` 에 저장.
 
     preprocessor 노드는 base64를 메모리에서만 다루므로, 페이지 2(``_frame_data_uri``)가
     디스크에서 frames를 읽을 수 있도록 별도 디스크 사본을 만든다. 옵션 A(파일 업로드)와
     B(YouTube)에서 호출. 옵션 C는 기존 frames 가 이미 디스크에 있어 호출 불필요.
+
+    duration 측정이 실패해도 30초 기본값으로 진행 (분석 자체는 멈추지 않음).
     """
     target_dir = _PROJECT_ROOT / "data" / "frames" / slug
     target_dir.mkdir(parents=True, exist_ok=True)
 
-    probe = subprocess.run(
-        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
-         "-of", "default=noprint_wrappers=1:nokey=1", str(video_path)],
-        capture_output=True, text=True, check=True, timeout=30,
-    )
-    duration = float(probe.stdout.strip())
+    duration = _probe_duration_safe(video_path)
     timestamps = [0.0, duration * 0.05, duration * 0.25, duration * 0.50, duration * 0.95]
 
     for i, ts in enumerate(timestamps):
         out_path = target_dir / f"{i}.jpg"
-        subprocess.run(
-            ["ffmpeg", "-y", "-ss", f"{ts:.3f}", "-i", str(video_path),
-             "-vframes", "1", "-q:v", "2", str(out_path)],
-            capture_output=True, check=True, timeout=30,
-        )
+        try:
+            subprocess.run(
+                ["ffmpeg", "-y", "-ss", f"{ts:.3f}", "-i", str(video_path),
+                 "-vframes", "1", "-q:v", "2", str(out_path)],
+                capture_output=True, check=True, timeout=30,
+            )
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            # ffmpeg 자체가 없는 환경 — frame 추출 skip. preprocessor 노드는 ffmpeg-python 으로
+            # 별도 base64 추출을 시도하니 이 함수가 실패해도 분석은 계속됨.
+            return
 
 
 # ─── 시드 영상 매칭 (yt-dlp 우회) ────────────────────────────────────────────

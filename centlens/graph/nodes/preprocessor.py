@@ -28,10 +28,50 @@ logger = logging.getLogger(__name__)
 FRAME_TIMESTAMPS_RATIO: tuple[float, ...] = (0.0, 0.05, 0.25, 0.50, 0.95)
 
 
+_DEFAULT_DURATION_SEC: float = 30.0
+
+
 def _probe_duration_sync(video_path: str) -> float:
-    """ffprobe로 영상 길이(초)를 측정한다."""
-    info: dict[str, Any] = ffmpeg.probe(video_path)
-    return float(info["format"]["duration"])
+    """영상 길이(초) 측정 — ffmpeg.probe → cv2 → moviepy → 기본값 30.0초 폴백.
+
+    Streamlit Cloud 처럼 ffprobe 바이너리가 없는 환경에서도 동작하도록 다단계 폴백.
+    최후의 30.0초는 시드 영상 평균 길이 (28~36초)에 가까워, 5장면 추출(0~95%)이
+    유효 범위에 들어오는 안전한 default.
+    """
+    # 1) ffmpeg-python (ffprobe 호출)
+    try:
+        info: dict[str, Any] = ffmpeg.probe(video_path)
+        return float(info["format"]["duration"])
+    except Exception as e:
+        logger.warning("ffmpeg.probe 실패, 폴백 시도: %s", e)
+
+    # 2) OpenCV (frame_count / fps)
+    try:
+        import cv2  # type: ignore[import-not-found]
+        cap = cv2.VideoCapture(str(video_path))
+        if cap.isOpened():
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+            cap.release()
+            if fps and fps > 0 and frame_count and frame_count > 0:
+                return float(frame_count) / float(fps)
+    except Exception as e:
+        logger.warning("cv2 폴백 실패: %s", e)
+
+    # 3) moviepy
+    try:
+        from moviepy.editor import VideoFileClip  # type: ignore[import-not-found]
+        with VideoFileClip(str(video_path)) as clip:
+            return float(clip.duration)
+    except Exception as e:
+        logger.warning("moviepy 폴백 실패: %s", e)
+
+    # 4) 모두 실패 — 기본값
+    logger.warning(
+        "_probe_duration_sync: 모든 폴백 실패. 기본 %.1f초 사용 (5장면 추출은 비율 기반이라 진행 가능)",
+        _DEFAULT_DURATION_SEC,
+    )
+    return _DEFAULT_DURATION_SEC
 
 
 def _extract_frames_sync(video_path: str) -> list[str]:

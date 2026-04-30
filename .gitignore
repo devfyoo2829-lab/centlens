@@ -38,10 +38,6 @@ data/frames/
 data/scripts/
 data/metadata.json
 
-# 데모 캐시 (실제 처리 결과 - 민감)
-demo_cache/*.json
-!demo_cache/.gitkeep
-
 # IDE
 .vscode/
 .idea/
@@ -78,5 +74,3 @@ logs/
 # 검증/디버그용 임시 스크립트
 check_*.py
 debug_*.py
-demo_cache/
-demo_cache/
